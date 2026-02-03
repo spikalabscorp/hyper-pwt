@@ -7,17 +7,17 @@ on:
         description: 'New features (use \n for line breaks, leave empty if none)'
         required: false
         type: string
-        default: ''
+        default: ""
       bug_fixes:
         description: 'Bug fixes (use \n for line breaks, leave empty if none)'
         required: false
         type: string
-        default: ''
+        default: ""
       other_changes:
         description: 'Other changes (use \n for line breaks, leave empty if none)'
         required: false
         type: string
-        default: ''
+        default: ""
 
 jobs:
   release:
@@ -39,13 +39,13 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: 'pnpm'
-          registry-url: 'https://registry.npmjs.org'
+          node-version: 24.11.1
+          cache: "pnpm"
+          registry-url: "https://registry.npmjs.org"
 
       - name: Install dependencies
         run: pnpm install
-      
+
       - name: Get version and SHA
         id: version
         run: |
@@ -71,7 +71,7 @@ jobs:
             echo "${{ github.event.inputs.new_features }}" | sed 's/\\n/\n/g' | sed 's/^[[:space:]]*-*/- /' | sed '/^[[:space:]]*$/d' >> release_body.txt
             echo "" >> release_body.txt
           fi
-          
+
           # Process Bug Fixes
           if [ -n "${{ github.event.inputs.bug_fixes }}" ]; then
             echo "## 🐛 Bug Fixes" >> release_body.txt
@@ -79,7 +79,7 @@ jobs:
             echo "${{ github.event.inputs.bug_fixes }}" | sed 's/\\n/\n/g' | sed 's/^[[:space:]]*-*/- /' | sed '/^[[:space:]]*$/d' >> release_body.txt
             echo "" >> release_body.txt
           fi
-          
+
           # Process Other Changes
           if [ -n "${{ github.event.inputs.other_changes }}" ]; then
             echo "## 🔧 Other Changes" >> release_body.txt
@@ -87,18 +87,18 @@ jobs:
             echo "${{ github.event.inputs.other_changes }}" | sed 's/\\n/\n/g' | sed 's/^[[:space:]]*-*/- /' | sed '/^[[:space:]]*$/d' >> release_body.txt
             echo "" >> release_body.txt
           fi
-          
+
           # Add installation and warning sections
           cat << 'EOF' >> release_body.txt
           ## 📦 Installation
           ```bash
           npm install --dev @repixelcorp/hyper-pwt@${{ steps.version.outputs.version }}
           ```
-          
+
           ## ⚠️ Warning
           This is a canary release and should not be used in production environments.
           EOF
-          
+
           # Output the content
           echo "body<<EOF" >> $GITHUB_OUTPUT
           cat release_body.txt >> $GITHUB_OUTPUT
@@ -115,7 +115,7 @@ jobs:
           body: ${{ steps.release_contents.outputs.body }}
           draft: false
           prerelease: true
-      
+
       - name: Update package.json version
         run: |
           npm version ${{ steps.version.outputs.version }} --no-git-tag-version --allow-same-version
