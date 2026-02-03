@@ -164,5 +164,3 @@ Mendix® is a registered trademark of Mendix Technology BV. Any use of the Mendi
 ### Compatibility & Maintenance
 
 This tool was developed for a specific version of the Mendix platform and its Pluggable Widget Tools (PWT). Future updates to the Mendix platform may break the functionality of this tool without notice. We do not guarantee ongoing compatibility or provide any obligation to maintain, support, update, or otherwise service this software.
-
-

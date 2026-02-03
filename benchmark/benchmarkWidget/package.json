@@ -1,50 +1,50 @@
 {
-  "name": "benchmarkwidget",
-  "widgetName": "BenchmarkWidget",
-  "version": "1.0.0",
-  "description": "Widget for benchmark",
-  "copyright": "Copyright 2025 Repixel Co, Ltd. All rights reserved.",
-  "author": "Chan Kang",
-  "engines": {
-    "node": ">=16"
-  },
-  "license": "-",
-  "config": {
-    "projectPath": "../../../Mendix/benchmark-main",
-    "mendixHost": "http://localhost:8080",
-    "developmentPort": 3000
-  },
-  "packagePath": "kr.co.repixel",
-  "scripts": {
-    "start": "pluggable-widgets-tools start:server",
-    "dev": "pluggable-widgets-tools start:web",
-    "build": "pluggable-widgets-tools build:web",
-    "build:hyper": "hyper-pwt build:web",
-    "lint": "pluggable-widgets-tools lint",
-    "lint:fix": "pluggable-widgets-tools lint:fix",
-    "prerelease": "npm run lint",
-    "release": "pluggable-widgets-tools release:web",
-    "release:hyper": "hyper-pwt release:web"
-  },
-  "devDependencies": {
-    "@mendix/pluggable-widgets-tools": "^10.15.0",
-    "@repixelcorp/hyper-pwt": "^0.3.1",
-    "@types/big.js": "^6.0.2",
-    "@types/react-big-calendar": "^1.16.2"
-  },
-  "dependencies": {
-    "classnames": "^2.2.6",
-    "dayjs": "^1.11.18",
-    "react-big-calendar": "^1.19.4"
-  },
-  "resolutions": {
-    "react": "^18.2.0",
-    "@types/react": "^18.2.0",
-    "react-native": "0.72.7"
-  },
-  "overrides": {
-    "react": "^18.2.0",
-    "@types/react": "^18.2.0",
-    "react-native": "0.72.7"
-  }
+    "name": "benchmarkwidget",
+    "widgetName": "BenchmarkWidget",
+    "version": "1.0.0",
+    "description": "Widget for benchmark",
+    "copyright": "Copyright 2025 Repixel Co, Ltd. All rights reserved.",
+    "author": "Chan Kang",
+    "engines": {
+        "node": ">=16"
+    },
+    "license": "-",
+    "config": {
+        "projectPath": "../../../Mendix/benchmark-main",
+        "mendixHost": "http://localhost:8080",
+        "developmentPort": 3000
+    },
+    "packagePath": "kr.co.repixel",
+    "scripts": {
+        "start": "pluggable-widgets-tools start:server",
+        "dev": "pluggable-widgets-tools start:web",
+        "build": "pluggable-widgets-tools build:web",
+        "build:hyper": "hyper-pwt build:web",
+        "lint": "pluggable-widgets-tools lint",
+        "lint:fix": "pluggable-widgets-tools lint:fix",
+        "prerelease": "npm run lint",
+        "release": "pluggable-widgets-tools release:web",
+        "release:hyper": "hyper-pwt release:web"
+    },
+    "devDependencies": {
+        "@mendix/pluggable-widgets-tools": "^11.3.0",
+        "@repixelcorp/hyper-pwt": "^0.4.0-canary-9b3b704",
+        "@types/big.js": "^6.0.2",
+        "@types/react-big-calendar": "^1.16.2"
+    },
+    "dependencies": {
+        "classnames": "^2.2.6",
+        "dayjs": "^1.11.18",
+        "react-big-calendar": "^1.19.4"
+    },
+    "resolutions": {
+        "react": "^18.2.0",
+        "@types/react": "^18.2.0",
+        "react-native": "0.72.7"
+    },
+    "overrides": {
+        "react": "^18.2.0",
+        "@types/react": "^18.2.0",
+        "react-native": "0.72.7"
+    }
 }
