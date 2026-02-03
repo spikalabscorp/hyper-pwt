@@ -13,7 +13,7 @@ export default defineConfig({
       },
       output: {
         filename: {
-          js: "[name].js",
+          js: "[name].cjs",
         },
       },
     },

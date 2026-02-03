@@ -10,7 +10,7 @@
   "scripts": {
     "build": "rslib build",
     "watch": "rslib build --watch",
-    "start": "pnpm build && node ./dist/cli.js",
+    "start": "pnpm build && node ./dist/cli.cjs",
     "package": "pnpm build && pnpm pack",
     "prepare": "husky",
     "lint": "biome check",
@@ -31,7 +31,7 @@
     "./src/configurations/typescript/tsconfig.base": "./src/configurations/typescript/tsconfig.base.json"
   },
   "bin": {
-    "hyper-pwt": "dist/cli.js"
+    "hyper-pwt": "dist/cli.cjs"
   },
   "keywords": [
     "mendix",
