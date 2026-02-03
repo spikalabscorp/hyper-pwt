@@ -18,8 +18,8 @@ importers:
         specifier: 14.0.0
         version: 14.0.0
       fast-xml-parser:
-        specifier: 5.2.5
-        version: 5.2.5
+        specifier: 5.3.4
+        version: 5.3.4
       mendix:
         specifier: 10.24.77222
         version: 10.24.77222
@@ -742,8 +742,8 @@ packages:
   estree-walker@2.0.2:
     resolution: {integrity: sha512-Rfkk/Mp/DL7JVje3u18FxFujQlTNR2q6QfMSMB7AvCBx91NGj/ba3kCfza0f6dVDbw7YlRf/nDrn7pQrCCyQ/w==}
 
-  fast-xml-parser@5.2.5:
-    resolution: {integrity: sha512-pfX9uG9Ki0yekDHx2SiuRIyFdyAr1kMIMitPvb0YBo8SUfKvia7w7FIyd/l6av85pFYRhZscS75MwMnbvY+hcQ==}
+  fast-xml-parser@5.3.4:
+    resolution: {integrity: sha512-EFd6afGmXlCx8H8WTZHhAoDaWaGyuIBoZJ2mknrNxug+aZKjkp0a0dlars9Izl+jF+7Gu1/5f/2h68cQpe0IiA==}
     hasBin: true
 
   fdir@6.5.0:
@@ -1742,7 +1742,7 @@ snapshots:
 
   estree-walker@2.0.2: {}
 
-  fast-xml-parser@5.2.5:
+  fast-xml-parser@5.3.4:
     dependencies:
       strnum: 2.1.1
 
