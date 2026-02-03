@@ -46,7 +46,7 @@
     "@rslib/core": "0.12.2",
     "@types/node": "22.17.2",
     "husky": "9.1.7",
-    "type-fest": "4.41.0",
+    "type-fest": "5.4.3",
     "typescript": "5.9.3"
   },
   "dependencies": {
@@ -70,5 +70,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
+  },
+  "engines": {
+    "node": "24.11.1"
   }
 }
