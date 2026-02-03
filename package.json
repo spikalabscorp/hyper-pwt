@@ -58,7 +58,7 @@
     "mendix": "10.24.77222",
     "rollup-plugin-typescript2": "0.36.0",
     "vite": "npm:rolldown-vite@7.1.5",
-    "zip-a-folder": "3.1.9"
+    "zip-a-folder": "4.0.4"
   },
   "files": [
     "dist/**/*",
