@@ -13,9 +13,11 @@ import {
   VITE_CONFIGURATION_FILENAME,
 } from "../../../constants";
 import { generateTypesFromFile } from "../../../type-generator";
+import getMendixProjectDirectory from "../../../utils/getMendixProjectDirectory";
 import getViteUserConfiguration from "../../../utils/getViteUserConfiguration";
 import getViteWatchOutputDirectory from "../../../utils/getViteWatchOutputDirectory";
 import getWidgetName from "../../../utils/getWidgetName";
+import getWidgetPackageJson from "../../../utils/getWidgetPackageJson";
 import pathIsExists from "../../../utils/pathIsExists";
 import showMessage from "../../../utils/showMessage";
 
@@ -46,6 +48,67 @@ const generateTyping = async () => {
   await fs.writeFile(newTypingsFilePath, typingContents);
 };
 
+const resolveWidgetEntry = async (widgetName: string) => {
+  const candidates = [
+    {
+      ext: ".tsx",
+      path: path.join(PROJECT_DIRECTORY, "src", `${widgetName}.tsx`),
+    },
+    {
+      ext: ".ts",
+      path: path.join(PROJECT_DIRECTORY, "src", `${widgetName}.ts`),
+    },
+    {
+      ext: ".jsx",
+      path: path.join(PROJECT_DIRECTORY, "src", `${widgetName}.jsx`),
+    },
+    {
+      ext: ".js",
+      path: path.join(PROJECT_DIRECTORY, "src", `${widgetName}.js`),
+    },
+  ];
+
+  for (const candidate of candidates) {
+    if (await pathIsExists(candidate.path)) {
+      return `src/${widgetName}${candidate.ext}`;
+    }
+  }
+
+  throw new Error(
+    `Widget entry file not found. Expected one of: ${candidates
+      .map((candidate) => candidate.path)
+      .join(", ")}`,
+  );
+};
+
+const ensureTrailingSlash = (value: string) => {
+  if (!value) return value;
+  return value.endsWith("/") ? value : `${value}/`;
+};
+
+const syncDeploymentMetadata = async (widgetName: string) => {
+  const mendixProjectDirectory = await getMendixProjectDirectory();
+  const widgetsRoot = path.join(
+    mendixProjectDirectory,
+    "deployment/web/widgets",
+  );
+  const packageXmlSource = path.join(PROJECT_DIRECTORY, "src/package.xml");
+  const widgetXmlSource = path.join(PROJECT_DIRECTORY, `src/${widgetName}.xml`);
+
+  await fs.mkdir(widgetsRoot, { recursive: true });
+
+  if (await pathIsExists(packageXmlSource)) {
+    await fs.copyFile(packageXmlSource, path.join(widgetsRoot, "package.xml"));
+  }
+
+  if (await pathIsExists(widgetXmlSource)) {
+    await fs.copyFile(
+      widgetXmlSource,
+      path.join(widgetsRoot, `${widgetName}.xml`),
+    );
+  }
+};
+
 const startWebCommand = async () => {
   try {
     showMessage("Start widget server");
@@ -59,6 +122,7 @@ const startWebCommand = async () => {
     const viteConfigIsExists = await pathIsExists(customViteConfigPath);
     let resultViteConfig: UserConfig;
     const widgetName = await getWidgetName();
+    const widgetEntry = await resolveWidgetEntry(widgetName);
 
     if (viteConfigIsExists) {
       const userConfig = await getViteUserConfiguration(customViteConfigPath);
@@ -78,16 +142,44 @@ const startWebCommand = async () => {
       });
     }
 
+    const packageJson = await getWidgetPackageJson();
+    const devPort = packageJson.config?.developmentPort;
+    const reactDeps = [
+      "react",
+      "react-dom",
+      "react-dom/client",
+      "react/jsx-runtime",
+      "react/jsx-dev-runtime",
+    ];
+    const existingOptimizeDepsExclude = Array.isArray(
+      resultViteConfig.optimizeDeps?.exclude,
+    )
+      ? resultViteConfig.optimizeDeps?.exclude
+      : [];
+    const optimizeDepsExclude = Array.from(
+      new Set([...existingOptimizeDepsExclude, ...reactDeps]),
+    );
+    const serverConfig = resultViteConfig.server ?? {};
+
     const viteServer = await createServer({
       ...resultViteConfig,
       root: PROJECT_DIRECTORY,
+      optimizeDeps: {
+        ...resultViteConfig.optimizeDeps,
+        exclude: optimizeDepsExclude,
+      },
       server: {
+        ...serverConfig,
+        port: devPort ?? serverConfig.port,
+        cors: true,
         fs: {
           strict: false,
+          ...(serverConfig.fs ?? {}),
         },
         watch: {
           usePolling: true,
           interval: 100,
+          ...(serverConfig.watch ?? {}),
         },
       },
       plugins: [
@@ -105,8 +197,8 @@ const startWebCommand = async () => {
           exclude: ["node_modules/**", "src/**/*.d.ts"],
           check: false,
         }),
-        ...(resultViteConfig.plugins as PluginOption[]),
         mendixHotreloadReactPlugin(),
+        ...(resultViteConfig.plugins as PluginOption[]),
         mendixPatchViteClientPlugin(),
         {
           name: "mendix-xml-watch-plugin",
@@ -130,28 +222,36 @@ const startWebCommand = async () => {
       "src/configurations/hotReload/widget.proxy.js.template",
     );
     const hotReloadContents = await fs.readFile(hotReloadTemplate, "utf-8");
-    const devServerUrl = viteServer.resolvedUrls?.local[0] || "";
+    const resolvedLocalUrl = viteServer.resolvedUrls?.local?.[0] || "";
+    const resolvedNetworkUrl = viteServer.resolvedUrls?.network?.[0] || "";
+    const configuredOrigin =
+      typeof viteServer.config.server.origin === "string"
+        ? viteServer.config.server.origin
+        : "";
+    const devServerUrl = ensureTrailingSlash(
+      configuredOrigin || resolvedLocalUrl || resolvedNetworkUrl,
+    );
+    if (!devServerUrl) {
+      throw new Error(
+        "Unable to resolve Vite dev server URL. Configure `server.origin` in vite.config.mjs or ensure the dev server can report resolved URLs.",
+      );
+    }
     const newHotReloadContents = hotReloadContents
       .replaceAll("{{ WIDGET_NAME }}", widgetName)
-      .replaceAll("{{ DEV_SERVER_URL }}", devServerUrl);
+      .replaceAll("{{ DEV_SERVER_URL }}", devServerUrl)
+      .replaceAll("{{ WIDGET_ENTRY }}", widgetEntry);
 
     const distDir = await getViteWatchOutputDirectory();
-    const distIsExists = await pathIsExists(distDir);
     const hotReloadWidgetPath = path.join(distDir, `${widgetName}.mjs`);
     const dummyCssPath = path.join(distDir, `${widgetName}.css`);
-
-    if (distIsExists) {
-      await fs.rm(distDir, {
-        recursive: true,
-        force: true,
-      });
-    }
 
     await fs.mkdir(distDir, {
       recursive: true,
     });
     await fs.writeFile(hotReloadWidgetPath, newHotReloadContents);
     await fs.writeFile(dummyCssPath, "");
+
+    await syncDeploymentMetadata(widgetName);
 
     showMessage(`${COLOR_GREEN("Widget hot reload is ready!")}`);
     showMessage(
