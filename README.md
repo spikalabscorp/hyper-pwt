@@ -29,6 +29,9 @@ Second, replace pluggable-widgets-tools to hyper-pwt in widget's package.json.
 }
 ```
 
+Use `hyper-pwt build:web --production` when you want the production build
+path without switching your script to `release:web`.
+
 Third, open tsconfig.json and change extends to hyper-pwt like below.
 
 ```json
