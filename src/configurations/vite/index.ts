@@ -110,7 +110,7 @@ export const getViteDefaultConfig = async (
       cssMinify: !!isProduction,
       sourcemap: !isProduction,
       lib: {
-        formats: isProduction ? ["umd"] : ["es", "umd"],
+        formats: ["es", "umd"],
         entry: path.join(PROJECT_DIRECTORY, `/src/${widgetName}.tsx`),
         name: widgetName,
         fileName: (format, entry) => {
