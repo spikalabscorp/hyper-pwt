@@ -90,9 +90,9 @@ const buildWebCommand = async (isProduction: boolean = false) => {
     if (viteConfigIsExists) {
       const userConfig = await getViteUserConfiguration(customViteConfigPath);
 
-      resultViteConfig = await getViteDefaultConfig(false, userConfig);
+      resultViteConfig = await getViteDefaultConfig(isProduction, userConfig);
     } else {
-      resultViteConfig = await getViteDefaultConfig(false);
+      resultViteConfig = await getViteDefaultConfig(isProduction);
     }
 
     const originPackageXmlPath = path.join(
