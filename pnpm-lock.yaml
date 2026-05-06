@@ -13,6 +13,9 @@ importers:
 
   .:
     dependencies:
+      '@biomejs/biome':
+        specifier: 2.4.14
+        version: 2.4.14
       '@vitejs/plugin-react':
         specifier: 6.0.1
         version: 6.0.1(vite@8.0.10(@types/node@25.6.0)(jiti@2.6.1))
@@ -38,9 +41,6 @@ importers:
         specifier: 6.1.1
         version: 6.1.1
     devDependencies:
-      '@biomejs/biome':
-        specifier: 2.4.14
-        version: 2.4.14
       '@rslib/core':
         specifier: 0.21.3
         version: 0.21.3(core-js@3.47.0)(typescript@6.0.3)
