@@ -1,5 +1,10 @@
 # AGENTS.md
 
+## Project Context
+
+- This project is a drop-in replacement for Mendix PWT.
+- When implementing or changing features, compare the behavior against the existing Mendix PWT and verify that the result can work as a drop-in replacement, including compatible APIs, behavior, outputs, and integration expectations.
+
 ## Sub-Agent Usage
 
 - When spawning a sub-agent, use the GPT-5.5 High or GPT-5.5 Xhigh model depending on the task's difficulty.
