@@ -29,7 +29,7 @@ async function runCommand(cmd: string | undefined, args: string[]) {
     case "start:ts":
       showRunMessage(cmd);
       console.log(
-        "This command has no effect, use pluggable-widgets-tools start:web instead!",
+        "This command has no effect, use hyper-pwt start:web instead!",
       );
       return;
 
@@ -61,9 +61,7 @@ async function runCommand(cmd: string | undefined, args: string[]) {
       return;
 
     default:
-      console.error(
-        `Unknown command passed to MX Widgets Tools script: '${cmd}'`,
-      );
+      console.error(`Unknown command passed to hyper-pwt script: '${cmd}'`);
       process.exit(1);
   }
 }
@@ -80,7 +78,7 @@ function removeSubprojectPath(args: string[]) {
 }
 
 function showRunMessage(cmd: string) {
-  console.log(`Running MX Widgets Tools script ${cmd}...`);
+  console.log(`Running hyper-pwt script ${cmd}...`);
 }
 
 async function runCliAction(action: () => Promise<void>) {
