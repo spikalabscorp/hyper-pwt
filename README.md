@@ -23,6 +23,7 @@ Second, replace pluggable-widgets-tools to hyper-pwt in widget's package.json.
     "build": "hyper-pwt build:web",
     "lint": "hyper-pwt lint",
     "lint:fix": "hyper-pwt lint:fix",
+    "format": "hyper-pwt format",
     "prerelease": "npm run lint",
     "release": "hyper-pwt release:web"
   }
@@ -54,45 +55,60 @@ If the widget does not function properly after installing hyper-pwt, you can cus
 Create vite.config.mjs on your pwt root directory.
 
 ```javascript
-import { definePWTConfig } from '@repixelcorp/hyper-pwt';
+import { definePWTConfig } from "@repixelcorp/hyper-pwt";
 
 export default definePWTConfig(() => {
-    return {
-      // Your custom configuration in here.
-    };
+  return {
+    // Your custom configuration in here.
+  };
 });
 ```
 
 hyper-pwt uses the [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react) plugin. The settings for this plugin can be changed as follows.
 
 ```javascript
-import { definePWTConfig } from '@repixelcorp/hyper-pwt';
+import { definePWTConfig } from "@repixelcorp/hyper-pwt";
 
 export default definePWTConfig(() => {
-    return {
-        reactPluginOptions: {
-          jsxRuntime: 'classic'
-        }
-    };
+  return {
+    reactPluginOptions: {
+      jsxRuntime: "classic",
+    },
+  };
 });
 ```
 
 definePWTConfig also supports asynchronous mode. It can be used as follows.
 
 ```javascript
-import { definePWTConfig } from '@repixelcorp/hyper-pwt';
+import { definePWTConfig } from "@repixelcorp/hyper-pwt";
 
 export default definePWTConfig(async () => {
-    const promise = await somethingPromise();
+  const promise = await somethingPromise();
 
-    return {
-    };
+  return {};
 });
 ```
 
 ### Native
 
 TODO
+
+## Linting and formatting
+
+hyper-pwt runs `lint`, `lint:fix`, and `format` with oxlint and oxfmt.
+
+For drop-in migration, existing Mendix PWT `.eslintrc.js` and
+`prettier.config.js` files can remain in the widget project. When no
+`.oxlintrc` or `.oxfmtrc` config exists, hyper-pwt applies generated
+oxlint/oxfmt compatibility settings that mirror the Mendix PWT Prettier
+defaults.
+
+The command targets follow Mendix PWT:
+
+- `lint`: format check for `src`, `typings`, and `tests`, then lint `src`.
+- `lint:fix`: format write for `src`, `typings`, and `tests`, then fix `src`.
+- `format`: format write for `src`, `typings`, and `tests`.
 
 ## Performance compare with Mendix PWT
 
@@ -102,11 +118,11 @@ If you wish to reproduce the benchmark results, you can do so using the tools an
 
 ### Web Widget Build
 
-|Category|@mendix/pluggable-widgets-tools|@repixelcorp/hyper-pwt|Result|
-|--------|-------------------------------|----------------------|------|
-|Build time|27475ms|4135ms|**-23340.00ms (84.95% faster)**|
-|Memory Usage|0.11MB|0.08MB|**-0.03MB (26.93% less)**|
-|MPK File Size|1.26MB|557.08KB|**-731.37KB (56.76% less)**|
+| Category      | @mendix/pluggable-widgets-tools | @repixelcorp/hyper-pwt | Result                          |
+| ------------- | ------------------------------- | ---------------------- | ------------------------------- |
+| Build time    | 27475ms                         | 4135ms                 | **-23340.00ms (84.95% faster)** |
+| Memory Usage  | 0.11MB                          | 0.08MB                 | **-0.03MB (26.93% less)**       |
+| MPK File Size | 1.26MB                          | 557.08KB               | **-731.37KB (56.76% less)**     |
 
 ### Native Widget
 
@@ -120,9 +136,9 @@ TODO
 - [ ] build:native
 - [x] release:web
 - [ ] release:native
-- [ ] lint
-- [ ] lint:fix
-- [ ] format
+- [x] lint
+- [x] lint:fix
+- [x] format
 - [ ] test:unit:web
 - [ ] test:unit:native
 - [ ] Widget Generator
@@ -131,7 +147,7 @@ TODO
 
 - [x] Web
   - [x] Basic Functions
-  - [ ] Linter and Formatting
+  - [x] Linter and Formatting
   - [ ] TDD Functions
 - [ ] Native
   - [ ] Basic Functions

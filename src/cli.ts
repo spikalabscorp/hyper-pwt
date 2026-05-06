@@ -1,35 +1,103 @@
 #!/usr/bin/env node
 
-import { program } from "commander";
-
-import packageJson from "../package.json";
 import buildWebCommand from "./commands/build/web";
+import lintingCommand from "./commands/linting";
 import startWebCommand from "./commands/start/web";
+import { COLOR_ERROR } from "./constants";
+import showMessage from "./utils/showMessage";
 
-program.version(
-  packageJson.version,
-  "-v, --version",
-  "display current version",
-);
+type LintingCommand = "lint" | "lint:fix" | "format";
 
-program
-  .command("build:web")
-  .summary("build web widget")
-  .option("-p, --production", "build web widget with production optimizations")
-  .action(async (options: { production?: boolean }) => {
-    await buildWebCommand(Boolean(options.production));
-  });
+const [, , command, ...args] = process.argv;
+const normalizedArgs = removeSubprojectPath(args);
 
-program
-  .command("release:web")
-  .summary("release web widget")
-  .action(async () => {
-    await buildWebCommand(true);
-  });
+runCommand(command, normalizedArgs).catch((error) => {
+  handleCliError(error);
+});
 
-program
-  .command("start:web")
-  .summary("start web widget live reload")
-  .action(startWebCommand);
+async function runCommand(cmd: string | undefined, args: string[]) {
+  switch (cmd) {
+    case "start:web":
+    case "start:server":
+    case "dev:js":
+    case "dev:ts":
+      showRunMessage(cmd);
+      await runCliAction(startWebCommand);
+      return;
 
-program.parse();
+    case "start:js":
+    case "start:ts":
+      showRunMessage(cmd);
+      console.log(
+        "This command has no effect, use hyper-pwt start:web instead!",
+      );
+      return;
+
+    case "build:web":
+    case "build:js":
+    case "build:ts":
+      showRunMessage(cmd);
+      await runCliAction(async () => {
+        await buildWebCommand(false);
+      });
+      return;
+
+    case "release:web":
+    case "release:js":
+    case "release:ts":
+      showRunMessage(cmd);
+      await runCliAction(async () => {
+        await buildWebCommand(true);
+      });
+      return;
+
+    case "lint":
+    case "lint:fix":
+    case "format":
+      showRunMessage(cmd);
+      await runCliAction(async () => {
+        await lintingCommand(cmd as LintingCommand, args);
+      });
+      return;
+
+    default:
+      console.error(`Unknown command passed to hyper-pwt script: '${cmd}'`);
+      process.exit(1);
+  }
+}
+
+function removeSubprojectPath(args: string[]) {
+  const result = [...args];
+  const subprojectPathIndex = result.indexOf("--subprojectPath");
+
+  if (subprojectPathIndex > -1) {
+    result.splice(subprojectPathIndex, 2);
+  }
+
+  return result;
+}
+
+function showRunMessage(cmd: string) {
+  console.log(`Running hyper-pwt script ${cmd}...`);
+}
+
+async function runCliAction(action: () => Promise<void>) {
+  try {
+    await action();
+  } catch (error) {
+    handleCliError(error);
+  }
+}
+
+function handleCliError(error: unknown): never {
+  if (process.exitCode && process.exitCode !== 0) {
+    process.exit(process.exitCode);
+  }
+
+  showMessage(
+    `${COLOR_ERROR("Command failed.")}\nError occurred: ${COLOR_ERROR(
+      (error as Error).stack,
+    )}`,
+  );
+  process.exit(1);
+}

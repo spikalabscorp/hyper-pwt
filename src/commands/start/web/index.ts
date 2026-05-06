@@ -174,12 +174,12 @@ const startWebCommand = async () => {
         cors: true,
         fs: {
           strict: false,
-          ...(serverConfig.fs ?? {}),
+          ...serverConfig.fs,
         },
         watch: {
           usePolling: true,
           interval: 100,
-          ...(serverConfig.watch ?? {}),
+          ...serverConfig.watch,
         },
       },
       plugins: [
@@ -261,6 +261,8 @@ const startWebCommand = async () => {
     showMessage(
       `${COLOR_ERROR("Build failed.")}\nError occurred: ${COLOR_ERROR((error as Error).message)}`,
     );
+    process.exitCode = 1;
+    throw error;
   }
 };
 

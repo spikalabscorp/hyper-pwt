@@ -157,6 +157,8 @@ const buildWebCommand = async (isProduction: boolean = false) => {
     showMessage(
       `${COLOR_ERROR("Build failed.")}\nError occurred: ${COLOR_ERROR((error as Error).stack)}`,
     );
+    process.exitCode = 1;
+    throw error;
   }
 };
 
