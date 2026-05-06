@@ -9,9 +9,27 @@ export function mendixPatchViteClientPlugin(): Plugin {
       server.middlewares.use(async (req, res, next) => {
         const url = req.url || "";
 
-        if (url.includes("@vite/client.mjs")) {
-          const transformed =
-            await server.transformRequest("/@vite/client.mjs");
+        if (url.includes("@react-refresh")) {
+          const transformed = await server.transformRequest("/@react-refresh");
+
+          if (!transformed?.code) {
+            next();
+            return;
+          }
+
+          res.setHeader(
+            "Content-Type",
+            "application/javascript; charset=utf-8",
+          );
+          res.end(transformed.code);
+          return;
+        }
+
+        if (url.includes("@vite/client")) {
+          const requestPath = url.includes("client.mjs")
+            ? "/@vite/client.mjs"
+            : "/@vite/client";
+          const transformed = await server.transformRequest(requestPath);
           let code = transformed?.code || "";
           const rePageReload =
             /const\s+pageReload\s*=\s*debounceReload\(\s*(\d+)\s*\)/;

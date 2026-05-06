@@ -1,144 +1,323 @@
 import type { Plugin } from "vite";
 
-// @note When the React version of Mendix is updated, the following content must also be updated.
-// @todo Depending on the React version, we need to consider whether there is a way to handle this automatically rather than manually.
+const REACT_EXPORTS = [
+  "Children",
+  "Component",
+  "Fragment",
+  "Profiler",
+  "PureComponent",
+  "StrictMode",
+  "Suspense",
+  "SuspenseList",
+  "cache",
+  "cloneElement",
+  "createContext",
+  "createElement",
+  "createFactory",
+  "createRef",
+  "createServerContext",
+  "forwardRef",
+  "isValidElement",
+  "lazy",
+  "memo",
+  "startTransition",
+  "unstable_act",
+  "unstable_useCacheRefresh",
+  "unstable_useDeferredValue",
+  "unstable_useEffectEvent",
+  "unstable_useTransition",
+  "use",
+  "useActionState",
+  "useCallback",
+  "useContext",
+  "useDebugValue",
+  "useDeferredValue",
+  "useEffect",
+  "useEffectEvent",
+  "useFormState",
+  "useFormStatus",
+  "useId",
+  "useImperativeHandle",
+  "useInsertionEffect",
+  "useLayoutEffect",
+  "useMemo",
+  "useOptimistic",
+  "useReducer",
+  "useRef",
+  "useState",
+  "useSyncExternalStore",
+  "useTransition",
+  "version",
+  "__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED",
+];
+
+const REACT_DOM_EXPORTS = [
+  "createPortal",
+  "createRoot",
+  "findDOMNode",
+  "flushSync",
+  "hydrate",
+  "hydrateRoot",
+  "render",
+  "unmountComponentAtNode",
+  "unstable_batchedUpdates",
+  "unstable_renderSubtreeIntoContainer",
+  "unstable_createEventHandle",
+  "version",
+  "__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED",
+];
+
+const VIRTUAL_REACT_ID = "\0mendix:react";
+const VIRTUAL_REACT_DOM_ID = "\0mendix:react-dom";
+const VIRTUAL_REACT_DOM_CLIENT_ID = "\0mendix:react-dom/client";
+const VIRTUAL_JSX_RUNTIME_ID = "\0mendix:react/jsx-runtime";
+const VIRTUAL_JSX_DEV_RUNTIME_ID = "\0mendix:react/jsx-dev-runtime";
+
+const RESERVED_EXPORTS = new Set([
+  "default",
+  "__esModule",
+  "constructor",
+  "prototype",
+]);
+
+const isValidIdentifier = (name: string) => /^[A-Za-z_$][\w$]*$/.test(name);
+
+const normalizeExportNames = (names: string[]) => {
+  const set = new Set<string>();
+  for (const name of names) {
+    if (!name || RESERVED_EXPORTS.has(name) || !isValidIdentifier(name)) {
+      continue;
+    }
+    set.add(name);
+  }
+  return Array.from(set).sort();
+};
+
+const buildModuleResolverPrelude = () => `
+const __mx_global = typeof globalThis !== "undefined"
+  ? globalThis
+  : typeof window !== "undefined"
+    ? window
+    : undefined;
+const __mx_require = __mx_global?.requirejs ?? __mx_global?.require;
+const __mx_requireContexts = __mx_global?.requirejs?.s?.contexts;
+const __mx_getGlobalValue = (names) => {
+  if (!__mx_global) return undefined;
+  for (const name of names) {
+    const value = __mx_global[name];
+    if (value !== undefined) return value;
+  }
+  return undefined;
+};
+const __mx_setGlobalValue = (names, value) => {
+  if (!__mx_global || value === undefined) return;
+  for (const name of names) {
+    if (!__mx_global[name]) __mx_global[name] = value;
+  }
+};
+const __mx_getFromDefined = (id) => {
+  if (!__mx_requireContexts) return undefined;
+  for (const contextKey of Object.keys(__mx_requireContexts)) {
+    const defined = __mx_requireContexts[contextKey]?.defined;
+    if (defined && id in defined) return defined[id];
+  }
+  return undefined;
+};
+const __mx_requireSync = (id) => {
+  if (typeof __mx_require !== "function") return undefined;
+  try {
+    const result = __mx_require(id);
+    if (result !== undefined) return result;
+  } catch (_) {}
+  return undefined;
+};
+const __mx_resolve = (ids) => {
+  for (const id of ids) {
+    const fromDefined = __mx_getFromDefined(id);
+    if (fromDefined !== undefined) return fromDefined;
+    const fromRequire = __mx_requireSync(id);
+    if (fromRequire !== undefined) return fromRequire;
+  }
+  return undefined;
+};
+`;
+
+const buildGlobalShimModule = (
+  globalNames: string[],
+  exportsList: string[],
+  moduleIds: string[],
+) => {
+  const safeExports = normalizeExportNames(exportsList);
+  const primaryGlobalName = globalNames[0];
+  const lines: string[] = [
+    buildModuleResolverPrelude(),
+    `const __mx_globalNames = ${JSON.stringify(globalNames)};`,
+    `let target = __mx_getGlobalValue(__mx_globalNames);`,
+    `if (!target) {`,
+    `  target = __mx_resolve(${JSON.stringify(moduleIds)});`,
+    `}`,
+    `if (!target) {`,
+    `  console.warn("[hyper-pwt] Mendix React global '${primaryGlobalName}' is missing. Hot reload may fail.");`,
+    `}`,
+    `__mx_setGlobalValue(__mx_globalNames, target);`,
+    `const get = (key) => (target ? target[key] : undefined);`,
+    `export default target;`,
+  ];
+
+  for (const name of safeExports) {
+    lines.push(`export const ${name} = get("${name}");`);
+  }
+
+  return lines.join("\n");
+};
+
+const buildReactDomClientShim = () => {
+  return `
+${buildModuleResolverPrelude()}
+const __mx_reactDomNames = ["ReactDOM"];
+const __mx_reactDomClientNames = ["ReactDOMClient"];
+
+let ReactDOM = __mx_getGlobalValue(__mx_reactDomNames);
+if (!ReactDOM) {
+  ReactDOM = __mx_resolve(["react-dom"]);
+}
+let ReactDOMClient = __mx_getGlobalValue(__mx_reactDomClientNames);
+if (!ReactDOMClient) {
+  ReactDOMClient = __mx_resolve(["react-dom/client"]);
+}
+
+if (!ReactDOM && !ReactDOMClient) {
+  console.warn("[hyper-pwt] Mendix ReactDOM globals are missing. react-dom/client shim may fail.");
+}
+
+__mx_setGlobalValue(__mx_reactDomNames, ReactDOM);
+__mx_setGlobalValue(__mx_reactDomClientNames, ReactDOMClient);
+
+const ensureContainer = (container) => {
+  if (!container) {
+    throw new Error("[hyper-pwt] react-dom/client: container is required.");
+  }
+};
+
+const legacyCreateRoot = (container) => {
+  ensureContainer(container);
+  if (!ReactDOM?.render) {
+    throw new Error("[hyper-pwt] react-dom/client: ReactDOM.render is not available in this Mendix React version.");
+  }
+
+  return {
+    render: (element) => ReactDOM.render(element, container),
+    unmount: () => ReactDOM.unmountComponentAtNode?.(container),
+  };
+};
+
+const legacyHydrateRoot = (container, element) => {
+  ensureContainer(container);
+  if (ReactDOM?.hydrate) {
+    ReactDOM.hydrate(element, container);
+  } else if (ReactDOM?.render) {
+    ReactDOM.render(element, container);
+  } else {
+    throw new Error("[hyper-pwt] react-dom/client: ReactDOM.hydrate/render is not available in this Mendix React version.");
+  }
+
+  return {
+    render: (nextElement) => ReactDOM.render(nextElement, container),
+    unmount: () => ReactDOM.unmountComponentAtNode?.(container),
+  };
+};
+
+const createRoot = ReactDOMClient?.createRoot ?? ReactDOM?.createRoot ?? legacyCreateRoot;
+const hydrateRoot = ReactDOMClient?.hydrateRoot ?? ReactDOM?.hydrateRoot ?? legacyHydrateRoot;
+
+export { createRoot, hydrateRoot };
+export default (ReactDOMClient ?? { createRoot, hydrateRoot });
+`;
+};
+
+const buildJsxRuntimeShim = (isDev: boolean) => {
+  const runtimeGlobalNames = isDev
+    ? ["ReactJSXDevRuntime", "react_jsx_dev_runtime"]
+    : ["ReactJSXRuntime", "react_jsx_runtime"];
+  const runtimeModuleId = isDev ? "react/jsx-dev-runtime" : "react/jsx-runtime";
+  const exportsLines: string[] = [
+    buildModuleResolverPrelude(),
+    `const __mx_reactNames = ["React"];`,
+    `const __mx_runtimeNames = ${JSON.stringify(runtimeGlobalNames)};`,
+    `let React = __mx_getGlobalValue(__mx_reactNames);`,
+    `if (!React) React = __mx_resolve(["react"]);`,
+    `let Runtime = __mx_getGlobalValue(__mx_runtimeNames);`,
+    `if (!Runtime) Runtime = __mx_resolve(["${runtimeModuleId}"]);`,
+    `if (!Runtime) {`,
+    `  console.warn("[hyper-pwt] Mendix React runtime '${runtimeModuleId}' is missing. JSX fallback will use React.createElement.");`,
+    `}`,
+    `__mx_setGlobalValue(__mx_reactNames, React);`,
+    `__mx_setGlobalValue(__mx_runtimeNames, Runtime);`,
+    `const createElementFallback = (type, props, key) => {`,
+    `  if (!React?.createElement) {`,
+    `    throw new Error("[hyper-pwt] React.createElement is unavailable for JSX runtime fallback.");`,
+    `  }`,
+    `  const nextProps = props ? { ...props } : {};`,
+    `  if (key !== undefined) nextProps.key = key;`,
+    `  return React.createElement(type, nextProps);`,
+    `};`,
+    `const Fragment = Runtime?.Fragment ?? React?.Fragment;`,
+  ];
+
+  if (isDev) {
+    exportsLines.push(`
+const jsxDEV =
+  Runtime?.jsxDEV ??
+  createElementFallback;
+export { Fragment, jsxDEV };
+export default (Runtime ?? { Fragment, jsxDEV });
+`);
+  } else {
+    exportsLines.push(`
+const jsx =
+  Runtime?.jsx ??
+  createElementFallback;
+const jsxs = Runtime?.jsxs ?? jsx;
+export { Fragment, jsx, jsxs };
+export default (Runtime ?? { Fragment, jsx, jsxs });
+`);
+  }
+
+  return exportsLines.join("\n");
+};
+
 export function mendixHotreloadReactPlugin(): Plugin {
   return {
-    name: "mendix-hotreload-react-18.2.0",
+    name: "mendix-hotreload-react-shim",
     enforce: "pre",
+    apply: "serve",
     resolveId(id) {
-      if (id === "react") {
-        return {
-          id: "mendix:react",
-          external: true,
-        };
-      }
-
-      if (id === "react-dom") {
-        return {
-          id: "mendix:react-dom",
-          external: true,
-        };
-      }
-
-      if (id === "react-dom/client") {
-        return {
-          id: "mendix:react-dom/client",
-          external: true,
-        };
-      }
-
-      if (id === "react/jsx-runtime") {
-        return {
-          id: "mendix:react/jsx-runtime",
-          external: true,
-        };
-      }
-
-      if (id === "react/jsx-dev-runtime") {
-        return {
-          id: "mendix:react/jsx-dev-runtime",
-          external: true,
-        };
-      }
+      if (id === "react") return VIRTUAL_REACT_ID;
+      if (id === "react-dom") return VIRTUAL_REACT_DOM_ID;
+      if (id === "react-dom/client") return VIRTUAL_REACT_DOM_CLIENT_ID;
+      if (id === "react/jsx-runtime") return VIRTUAL_JSX_RUNTIME_ID;
+      if (id === "react/jsx-dev-runtime") return VIRTUAL_JSX_DEV_RUNTIME_ID;
+      return null;
     },
     load(id) {
-      if (id === "mendix:react") {
-        return `
-          const React = window.React;
-          
-          export const Children = React.Children;
-          export const Component = React.Component;
-          export const Fragment = React.Fragment;
-          export const Profiler = React.Profiler;
-          export const PureComponent = React.PureComponent;
-          export const StrictMode = React.StrictMode;
-          export const Suspense = React.Suspense;
-          export const cloneElement = React.cloneElement;
-          export const createContext = React.createContext;
-          export const createElement = React.createElement;
-          export const createFactory = React.createFactory;
-          export const createRef = React.createRef;
-          export const forwardRef = React.forwardRef;
-          export const isValidElement = React.isValidElement;
-          export const lazy = React.lazy;
-          export const memo = React.memo;
-          export const startTransition = React.startTransition;
-          export const unstable_act = React.unstable_act;
-          export const useCallback = React.useCallback;
-          export const useContext = React.useContext;
-          export const useDebugValue = React.useDebugValue;
-          export const useDeferredValue = React.useDeferredValue;
-          export const useEffect = React.useEffect;
-          export const useId = React.useId;
-          export const useImperativeHandle = React.useImperativeHandle;
-          export const useInsertionEffect = React.useInsertionEffect;
-          export const useLayoutEffect = React.useLayoutEffect;
-          export const useMemo = React.useMemo;
-          export const useReducer = React.useReducer;
-          export const useRef = React.useRef;
-          export const useState = React.useState;
-          export const useSyncExternalStore = React.useSyncExternalStore;
-          export const useTransition = React.useTransition;
-          export const version = React.version;
-          
-          export default React;
-        `;
+      if (id === VIRTUAL_REACT_ID) {
+        return buildGlobalShimModule(["React"], REACT_EXPORTS, ["react"]);
       }
-
-      if (id === "mendix:react-dom") {
-        return `
-          const ReactDOM = window.ReactDOM;
-          
-          export const createPortal = ReactDOM.createPortal;
-          export const createRoot = ReactDOM.createRoot;
-          export const findDOMNode = ReactDOM.findDOMNode;
-          export const flushSync = ReactDOM.flushSync;
-          export const hydrate = ReactDOM.hydrate;
-          export const hydrateRoot = ReactDOM.hydrateRoot;
-          export const render = ReactDOM.render;
-          export const unmountComponentAtNode = ReactDOM.unmountComponentAtNode;
-          export const unstable_batchedUpdates = ReactDOM.unstable_batchedUpdates;
-          export const unstable_renderSubtreeIntoContainer = ReactDOM.unstable_renderSubtreeIntoContainer;
-          export const version = ReactDOM.version;
-          
-          export default ReactDOM;
-        `;
+      if (id === VIRTUAL_REACT_DOM_ID) {
+        return buildGlobalShimModule(["ReactDOM"], REACT_DOM_EXPORTS, [
+          "react-dom",
+        ]);
       }
-
-      if (id === "mendix:react-dom/client") {
-        return `
-          const ReactDOMClient = window.ReactDOMClient;
-          
-          export const createRoot = ReactDOMClient.createRoot;
-          export const hydrateRoot = ReactDOMClient.hydrateRoot;
-          
-          export default ReactDOMClient;
-        `;
+      if (id === VIRTUAL_REACT_DOM_CLIENT_ID) {
+        return buildReactDomClientShim();
       }
-
-      if (id === "mendix:react/jsx-runtime") {
-        return `
-          const ReactJSXRuntime = window.ReactJSXRuntime;
-          
-          export const Fragment = ReactJSXRuntime.Fragment;
-          export const jsx = ReactJSXRuntime.jsx;
-          export const jsxs = ReactJSXRuntime.jsxs;
-          
-          export default ReactJSXRuntime;
-        `;
+      if (id === VIRTUAL_JSX_RUNTIME_ID) {
+        return buildJsxRuntimeShim(false);
       }
-
-      if (id === "mendix:react/jsx-dev-runtime") {
-        return `
-          const ReactJSXDevRuntime = window.ReactJSXDevRuntime;
-          
-          export const Fragment = ReactJSXDevRuntime.Fragment;
-          export const jsxDEV = ReactJSXDevRuntime.jsxDEV;
-          
-          export default ReactJSXDevRuntime;
-        `;
+      if (id === VIRTUAL_JSX_DEV_RUNTIME_ID) {
+        return buildJsxRuntimeShim(true);
       }
+      return null;
     },
   };
 }

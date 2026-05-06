@@ -1,83 +1,304 @@
-if (!window.$RefreshReg$) {
+import ReactImport from "react";
+import * as ReactDOMImport from "react-dom";
+import * as ReactDOMClientImport from "react-dom/client";
+import * as ReactJSXRuntimeImport from "react/jsx-runtime";
+import * as ReactJSXDevRuntimeImport from "react/jsx-dev-runtime";
+
+const resolveDefault = (moduleValue) => {
+  if (!moduleValue) return moduleValue;
+  if (typeof moduleValue === "object" && "default" in moduleValue) {
+    return moduleValue.default;
+  }
+  return moduleValue;
+};
+
+const getGlobalScope = () =>
+  typeof globalThis !== "undefined"
+    ? globalThis
+    : typeof window !== "undefined"
+      ? window
+      : undefined;
+
+const getGlobalValue = (names) => {
+  const scope = getGlobalScope();
+  if (!scope) return undefined;
+  for (const name of names) {
+    const value = scope[name];
+    if (value !== undefined) return value;
+  }
+  return undefined;
+};
+
+const setGlobalValue = (names, value) => {
+  const scope = getGlobalScope();
+  if (!scope || value === undefined) return;
+  for (const name of names) {
+    if (!scope[name]) scope[name] = value;
+  }
+};
+
+const resolveFromMendixAmd = (moduleIds) => {
+  if (typeof window === "undefined") return undefined;
+
+  const resolveFromDefined = (id) => {
+    const contexts = window.requirejs?.s?.contexts;
+    if (!contexts) return undefined;
+    for (const contextName of Object.keys(contexts)) {
+      const defined = contexts[contextName]?.defined;
+      if (defined && id in defined) return defined[id];
+    }
+    return undefined;
+  };
+
+  const resolveFromRequire = (id) => {
+    const requireFn = window.requirejs ?? window.require;
+    if (typeof requireFn !== "function") return undefined;
+    try {
+      const result = requireFn(id);
+      if (result !== undefined) return result;
+    } catch (_) {}
+    return undefined;
+  };
+
+  for (const moduleId of moduleIds) {
+    const fromDefined = resolveFromDefined(moduleId);
+    if (fromDefined !== undefined) return fromDefined;
+
+    const fromRequire = resolveFromRequire(moduleId);
+    if (fromRequire !== undefined) return fromRequire;
+  }
+
+  return undefined;
+};
+
+const resolveModule = (moduleImport, moduleIds, globalNames) => {
+  const fromImport = resolveDefault(moduleImport);
+  if (fromImport !== undefined) {
+    setGlobalValue(globalNames, fromImport);
+    return fromImport;
+  }
+
+  const fromGlobal = getGlobalValue(globalNames);
+  if (fromGlobal !== undefined) return fromGlobal;
+
+  const fromAmd = resolveFromMendixAmd(moduleIds);
+  if (fromAmd !== undefined) {
+    setGlobalValue(globalNames, fromAmd);
+    return fromAmd;
+  }
+
+  return undefined;
+};
+
+const REACT_GLOBAL_NAMES = ["React"];
+const REACT_DOM_GLOBAL_NAMES = ["ReactDOM"];
+const REACT_DOM_CLIENT_GLOBAL_NAMES = ["ReactDOMClient"];
+const REACT_JSX_RUNTIME_GLOBAL_NAMES = ["ReactJSXRuntime", "react_jsx_runtime"];
+const REACT_JSX_DEV_RUNTIME_GLOBAL_NAMES = [
+  "ReactJSXDevRuntime",
+  "react_jsx_dev_runtime",
+];
+
+const ReactResolved = resolveModule(ReactImport, ["react"], REACT_GLOBAL_NAMES);
+const ReactDOMResolved = resolveModule(
+  ReactDOMImport,
+  ["react-dom"],
+  REACT_DOM_GLOBAL_NAMES,
+);
+const ReactDOMClientResolved = resolveModule(
+  ReactDOMClientImport,
+  ["react-dom/client"],
+  REACT_DOM_CLIENT_GLOBAL_NAMES,
+);
+const ReactJSXRuntimeResolved = resolveModule(
+  ReactJSXRuntimeImport,
+  ["react/jsx-runtime"],
+  REACT_JSX_RUNTIME_GLOBAL_NAMES,
+);
+const ReactJSXDevRuntimeResolved = resolveModule(
+  ReactJSXDevRuntimeImport,
+  ["react/jsx-dev-runtime"],
+  REACT_JSX_DEV_RUNTIME_GLOBAL_NAMES,
+);
+
+setGlobalValue(REACT_GLOBAL_NAMES, ReactResolved);
+setGlobalValue(REACT_DOM_GLOBAL_NAMES, ReactDOMResolved);
+setGlobalValue(REACT_DOM_CLIENT_GLOBAL_NAMES, ReactDOMClientResolved);
+setGlobalValue(REACT_JSX_RUNTIME_GLOBAL_NAMES, ReactJSXRuntimeResolved);
+setGlobalValue(REACT_JSX_DEV_RUNTIME_GLOBAL_NAMES, ReactJSXDevRuntimeResolved);
+
+const DEV_SERVER_URL = "{{ DEV_SERVER_URL }}";
+const DEV_SERVER_URL_WITH_SLASH = DEV_SERVER_URL.endsWith("/")
+  ? DEV_SERVER_URL
+  : `${DEV_SERVER_URL}/`;
+const WIDGET_NAME = "{{ WIDGET_NAME }}";
+const WIDGET_ENTRY = "{{ WIDGET_ENTRY }}";
+
+const React = ReactResolved ?? getGlobalValue(REACT_GLOBAL_NAMES);
+
+if (!React) {
+  throw new Error(
+    "[hyper-pwt] React module could not be resolved. Hot reload cannot start.",
+  );
+}
+
+const createFallbackRefreshRuntime = () => ({
+  injectIntoGlobalHook: () => {},
+  register: () => {},
+  createSignatureFunctionForTransform: () => (type) => type,
+  __hmr_import: async () => ({}),
+  registerExportsForReactRefresh: () => {},
+  validateRefreshBoundaryAndEnqueueUpdate: () => undefined,
+});
+
+const pickRefreshRuntime = (moduleValue) => {
+  if (!moduleValue) return null;
+  const namespace = typeof moduleValue === "object" ? moduleValue : null;
+  const defaultExport =
+    namespace && "default" in namespace ? namespace.default : undefined;
+  const candidates = [namespace, defaultExport];
+
+  for (const candidate of candidates) {
+    if (
+      candidate &&
+      typeof candidate.createSignatureFunctionForTransform === "function"
+    ) {
+      return candidate;
+    }
+  }
+
+  return namespace ?? defaultExport ?? null;
+};
+
+const installRefreshRuntime = (runtime) => {
+  if (typeof window === "undefined") return;
+  const resolvedRuntime = runtime ?? createFallbackRefreshRuntime();
+  window.RefreshRuntime = resolvedRuntime;
+  window.$RefreshRuntime$ = resolvedRuntime;
   window.$RefreshReg$ = () => {};
   window.$RefreshSig$ = () => (type) => type;
-  window.$RefreshRuntime$ = {
-    register: () => {},
-    createSignatureFunctionForTransform: () => () => {},
-    performed: false
-  };
-}
+};
 
-if (!window.__vite_plugin_react_preamble_installed__) {
+const ensureReactRefreshPreamble = async () => {
+  if (window.__vite_plugin_react_preamble_installed__) return;
+
+  let runtime = null;
+
+  try {
+    const refreshModule = await import(
+      `${DEV_SERVER_URL_WITH_SLASH}@react-refresh.js?mx-ext=.js`,
+    );
+    runtime = pickRefreshRuntime(refreshModule);
+  } catch (error) {
+    console.warn(
+      "[hyper-pwt] React refresh runtime is unavailable. Falling back to basic reload.",
+      error,
+    );
+  }
+
+  if (!runtime) {
+    runtime = createFallbackRefreshRuntime();
+  }
+
+  try {
+    runtime.injectIntoGlobalHook?.(window);
+  } catch (error) {
+    console.warn(
+      "[hyper-pwt] Failed to inject React refresh runtime into global hook. Falling back to basic reload.",
+      error,
+    );
+    runtime = createFallbackRefreshRuntime();
+  }
+
+  installRefreshRuntime(runtime);
   window.__vite_plugin_react_preamble_installed__ = true;
-}
+};
 
-import React from 'react';
-import * as ReactDOM from 'react-dom';
-import * as ReactDOMClient from 'react-dom/client';
-import * as ReactJSXRuntime from 'react/jsx-runtime';
-import * as ReactJSXDevRuntime from 'react/jsx-dev-runtime';
+const createErrorMessage = (message) => {
+  const style = {
+    padding: "12px",
+    border: "1px solid #ff4d4f",
+    borderRadius: "6px",
+    background: "#fff1f0",
+    color: "#a8071a",
+    fontFamily: "sans-serif",
+    fontSize: "12px",
+  };
 
-if (!window.React) {
-  window.React = React;
-  window.ReactDOM = ReactDOM.default;
-  window.ReactDOMClient = ReactDOMClient.default;
-  window.ReactJSXRuntime = ReactJSXRuntime.default;
-  window.ReactJSXDevRuntime = ReactJSXDevRuntime.default;
-}
+  return React.createElement("div", { style }, message);
+};
 
-const DEV_SERVER_URL = '{{ DEV_SERVER_URL }}';
-const WIDGET_NAME = '{{ WIDGET_NAME }}';
+const resolveWidgetModule = async () => {
+  const module = await import(
+    `${DEV_SERVER_URL_WITH_SLASH}${WIDGET_ENTRY}?t=${Date.now()}&mx-ext=.tsx`,
+  );
+
+  return module?.default ?? module?.[WIDGET_NAME] ?? null;
+};
 
 function WidgetProxy(props) {
   const [WidgetComponent, setWidgetComponent] = React.useState(null);
   const [error, setError] = React.useState(null);
-  const [version, setVersion] = React.useState(0);
-  const viteClientRef = React.useRef(null);
-  const [viteClientInitialized, setViteClientInitialized] = React.useState(false);
+  const hotContextRef = React.useRef(null);
 
-  const loadWidget = async () => {
+  const loadWidget = React.useCallback(async () => {
     try {
-      const module = await import(`${DEV_SERVER_URL}src/${WIDGET_NAME}.tsx?t=${Date.now()}`);
+      const resolved = await resolveWidgetModule();
 
-      setWidgetComponent(() => module.default || module[WIDGET_NAME]);
+      if (!resolved) {
+        throw new Error(
+          `Widget entry did not export a component. Expected default export or '${WIDGET_NAME}'.`,
+        );
+      }
+
+      setWidgetComponent(() => resolved);
       setError(null);
     } catch (err) {
-      console.error('Widget loading failed:', err);
+      console.error("[hyper-pwt] Widget loading failed:", err);
+      setError(err);
     }
-  };
-
-  const setupViteClient = async () => {
-    await fetch(`${DEV_SERVER_URL}@vite/client`);
-
-    const clientModule = await import(`${DEV_SERVER_URL}@vite/client.mjs?t=${Date.now()}`);
-
-    if (clientModule.createHotContext) {
-      viteClientRef.current = clientModule.createHotContext(`${DEV_SERVER_URL}src/${WIDGET_NAME}.tsx?t=${Date.now()}`);
-    }
-
-    setViteClientInitialized(true);
-  };
-
-  React.useEffect(() => {
-    setupViteClient();
   }, []);
 
   React.useEffect(() => {
-    if (viteClientInitialized) {
-      fetch(`${DEV_SERVER_URL}src/${WIDGET_NAME}.tsx`)
-        .then(() => {
-          loadWidget();
-          
-          viteClientRef.current.on('vite:afterUpdate', () => {
-            loadWidget();
-          });
-        });
-    }
-  }, [viteClientInitialized]);
+    let active = true;
+
+    const setup = async () => {
+      try {
+        await ensureReactRefreshPreamble();
+
+        const clientModule = await import(
+          `${DEV_SERVER_URL_WITH_SLASH}@vite/client.mjs`,
+        );
+
+        if (clientModule?.createHotContext) {
+          const hot = clientModule.createHotContext(`/${WIDGET_ENTRY}`);
+          hotContextRef.current = hot;
+
+          hot.on("vite:afterUpdate", () => loadWidget());
+          hot.on("vite:full-reload", () => loadWidget());
+        }
+
+        await loadWidget();
+      } catch (err) {
+        if (!active) return;
+        setError(err);
+      }
+    };
+
+    setup();
+
+    return () => {
+      active = false;
+    };
+  }, [loadWidget]);
+
+  if (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    return createErrorMessage(message);
+  }
 
   if (!WidgetComponent) {
-    return React.createElement('div', null, 'Loading hot reload widget...');
+    return React.createElement("div", null, "Loading hot reload widget...");
   }
 
   return React.createElement(WidgetComponent, props);

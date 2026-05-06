@@ -15,8 +15,9 @@ program.version(
 program
   .command("build:web")
   .summary("build web widget")
-  .action(async () => {
-    await buildWebCommand();
+  .option("-p, --production", "build web widget with production optimizations")
+  .action(async (options: { production?: boolean }) => {
+    await buildWebCommand(Boolean(options.production));
   });
 
 program
