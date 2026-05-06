@@ -5,7 +5,7 @@ const pathIsExists = async (directoryPath: string): Promise<boolean> => {
     await fs.access(directoryPath, fs.constants.F_OK);
 
     return true;
-  } catch (_error) {
+  } catch {
     return false;
   }
 };

@@ -11,7 +11,7 @@ const getWidgetPackageJson = async (): Promise<WidgetPackageJson> => {
     const packageJsonData: WidgetPackageJson = JSON.parse(packageJsonFile);
 
     return packageJsonData;
-  } catch (_error) {
+  } catch {
     throw new Error("package.json file is not exists.");
   }
 };

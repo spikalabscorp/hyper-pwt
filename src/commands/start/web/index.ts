@@ -174,12 +174,12 @@ const startWebCommand = async () => {
         cors: true,
         fs: {
           strict: false,
-          ...(serverConfig.fs ?? {}),
+          ...serverConfig.fs,
         },
         watch: {
           usePolling: true,
           interval: 100,
-          ...(serverConfig.watch ?? {}),
+          ...serverConfig.watch,
         },
       },
       plugins: [

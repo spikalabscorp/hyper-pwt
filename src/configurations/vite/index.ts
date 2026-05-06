@@ -96,7 +96,7 @@ export const getViteDefaultConfig = async (
   return {
     plugins: [
       react({
-        ...(userCustomConfig?.reactPluginOptions || {}),
+        ...userCustomConfig?.reactPluginOptions,
         jsxRuntime: "classic",
       }),
     ],
