@@ -23,6 +23,7 @@ Second, replace pluggable-widgets-tools to hyper-pwt in widget's package.json.
     "build": "hyper-pwt build:web",
     "lint": "hyper-pwt lint",
     "lint:fix": "hyper-pwt lint:fix",
+    "format": "hyper-pwt format",
     "prerelease": "npm run lint",
     "release": "hyper-pwt release:web"
   }
@@ -94,6 +95,25 @@ export default definePWTConfig(async () => {
 
 TODO
 
+## Linting and formatting
+
+hyper-pwt runs `lint`, `lint:fix`, and `format` with Biome.
+
+For drop-in migration, existing Mendix PWT `.eslintrc.js` and
+`prettier.config.js` files can remain in the widget project. When no
+`biome.json` or `biome.jsonc` exists, hyper-pwt applies a generated Biome
+compatibility configuration that mirrors the Mendix PWT Prettier defaults where
+Biome supports them.
+
+The command targets follow Mendix PWT:
+
+- `lint`: format check for `src`, `typings`, and `tests`, then lint `src`.
+- `lint:fix`: format write for `src`, `typings`, and `tests`, then fix `src`.
+- `format`: format write for `src`, `typings`, and `tests`.
+
+Biome 2.4 does not format SCSS, so SCSS files in the legacy PWT target set are
+reported and skipped.
+
 ## Performance compare with Mendix PWT
 
 The results below were obtained using our own tools within the [benchmark directory](./benchmark), and the code for the benchmarked widgets is also available for review.
@@ -120,9 +140,9 @@ TODO
 - [ ] build:native
 - [x] release:web
 - [ ] release:native
-- [ ] lint
-- [ ] lint:fix
-- [ ] format
+- [x] lint
+- [x] lint:fix
+- [x] format
 - [ ] test:unit:web
 - [ ] test:unit:native
 - [ ] Widget Generator
@@ -131,7 +151,7 @@ TODO
 
 - [x] Web
   - [x] Basic Functions
-  - [ ] Linter and Formatting
+  - [x] Linter and Formatting
   - [ ] TDD Functions
 - [ ] Native
   - [ ] Basic Functions
