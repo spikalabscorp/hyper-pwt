@@ -6,6 +6,7 @@ import type { PWTConfig } from "../..";
 import { PROJECT_DIRECTORY, WEB_OUTPUT_DIRECTORY } from "../../constants";
 import getViteOutputDirectory from "../../utils/getViteOutputDirectory";
 import getWidgetName from "../../utils/getWidgetName";
+import { mendixDependenciesLicensePlugin } from "./plugins/mendix-dependencies-license-plugin";
 
 export const getEditorConfigDefaultConfig = async (
   isProduction: boolean,
@@ -99,6 +100,14 @@ export const getViteDefaultConfig = async (
         ...userCustomConfig?.reactPluginOptions,
         jsxRuntime: "classic",
       }),
+      ...(isProduction
+        ? [
+            mendixDependenciesLicensePlugin({
+              outputDir: WEB_OUTPUT_DIRECTORY,
+              projectDir: PROJECT_DIRECTORY,
+            }),
+          ]
+        : []),
     ],
     define: {
       "process.env": {},
