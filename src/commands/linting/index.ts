@@ -9,10 +9,8 @@ import showMessage from "../../utils/showMessage";
 
 const requireFromCli = createRequire(import.meta.url);
 
-const FORMAT_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx", ".scss"]);
-const LINT_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx"]);
-const FORMAT_DIRECTORIES = ["src", "typings", "tests"];
-const LINT_DIRECTORIES = ["src"];
+const FORMAT_PATTERN = "{src,typings,tests}/**/*.{js,jsx,ts,tsx,scss}";
+const LINT_TARGET = "src";
 
 type CompatibilityConfig = {
   formatArgs: string[];
@@ -61,17 +59,20 @@ const OXLINT_CONFIG_FILE_NAMES = [
 ];
 
 const PWT_OXFMT_CONFIG = {
+  trailingComma: "none",
   useTabs: false,
   tabWidth: 4,
-  printWidth: 120,
+  semi: true,
   singleQuote: false,
+  printWidth: 120,
+  bracketSpacing: true,
+  bracketSameLine: false,
+  arrowParens: "avoid",
+  proseWrap: "always",
+  xmlSelfClosingSpace: true,
+  xmlWhitespaceSensitivity: "ignore",
   jsxSingleQuote: false,
   quoteProps: "as-needed",
-  trailingComma: "none",
-  semi: true,
-  arrowParens: "avoid",
-  bracketSameLine: false,
-  bracketSpacing: true,
   ignorePatterns: [],
 };
 
@@ -94,18 +95,17 @@ async function lintingCommand(
   passthroughArgs: string[] = [],
 ) {
   const compatibilityConfig = await prepareCompatibilityConfig();
-  const normalizedPassthroughArgs = removePwtCompatibilityArgs(passthroughArgs);
 
   try {
     if (command === "format") {
-      await runFormat(true, compatibilityConfig, normalizedPassthroughArgs);
+      await runFormat(true, compatibilityConfig, passthroughArgs);
       return;
     }
 
     const shouldWrite = command === "lint:fix";
 
     await runFormat(shouldWrite, compatibilityConfig);
-    await runLint(shouldWrite, compatibilityConfig, normalizedPassthroughArgs);
+    await runLint(shouldWrite, compatibilityConfig, passthroughArgs);
   } finally {
     await compatibilityConfig.cleanup();
   }
@@ -116,20 +116,10 @@ async function runFormat(
   compatibilityConfig: CompatibilityConfig,
   passthroughArgs: string[] = [],
 ) {
-  const files = await findMatchingFiles(FORMAT_DIRECTORIES, FORMAT_EXTENSIONS, {
-    usePrettierIgnore: true,
-  });
-
-  if (files.length === 0) {
-    showMessage("No matching files found for format.");
-    return;
-  }
-
   await runOxfmt([
     ...compatibilityConfig.formatArgs,
-    "--no-error-on-unmatched-pattern",
+    FORMAT_PATTERN,
     shouldWrite ? "--write" : "--check",
-    ...files,
     ...passthroughArgs,
   ]);
 }
@@ -139,25 +129,17 @@ async function runLint(
   compatibilityConfig: CompatibilityConfig,
   passthroughArgs: string[] = [],
 ) {
-  const files = await findMatchingFiles(LINT_DIRECTORIES, LINT_EXTENSIONS);
-
-  if (files.length === 0) {
-    showMessage("No matching files found for lint.");
-    return;
-  }
-
   await runOxlint([
     ...compatibilityConfig.lintArgs,
-    "--no-error-on-unmatched-pattern",
+    LINT_TARGET,
     ...(shouldWrite ? ["--fix"] : []),
-    ...files,
     ...passthroughArgs,
   ]);
 }
 
 async function prepareCompatibilityConfig(): Promise<CompatibilityConfig> {
   const [userOxfmtConfigPath, userOxlintConfigPath] = await Promise.all([
-    findUserConfig(OXFMT_CONFIG_FILE_NAMES),
+    findFormatConfig(),
     findUserConfig(OXLINT_CONFIG_FILE_NAMES),
   ]);
   const legacyConfigFiles = await findLegacyConfigFiles();
@@ -215,6 +197,34 @@ async function prepareCompatibilityConfig(): Promise<CompatibilityConfig> {
   };
 }
 
+async function findFormatConfig(): Promise<string | undefined> {
+  const userOxfmtConfigPath = await findUserConfig(OXFMT_CONFIG_FILE_NAMES);
+
+  if (userOxfmtConfigPath) {
+    return userOxfmtConfigPath;
+  }
+
+  const pwtRootPrettierConfigPath = path.join(
+    PROJECT_DIRECTORY,
+    "node_modules/prettier.config.js",
+  );
+
+  if (await pathIsExists(pwtRootPrettierConfigPath)) {
+    return pwtRootPrettierConfigPath;
+  }
+
+  const userPrettierConfigPath = path.join(
+    PROJECT_DIRECTORY,
+    "prettier.config.js",
+  );
+
+  if (await pathIsExists(userPrettierConfigPath)) {
+    return userPrettierConfigPath;
+  }
+
+  return undefined;
+}
+
 async function findUserConfig(
   fileNames: string[],
 ): Promise<string | undefined> {
@@ -239,145 +249,6 @@ async function findLegacyConfigFiles(): Promise<string[]> {
   }
 
   return files;
-}
-
-async function findMatchingFiles(
-  directoryNames: string[],
-  extensions: Set<string>,
-  options: { usePrettierIgnore?: boolean } = {},
-): Promise<string[]> {
-  const prettierIgnorePatterns = options.usePrettierIgnore
-    ? await readPrettierIgnorePatterns()
-    : [];
-  const files = [];
-
-  for (const directoryName of directoryNames) {
-    const directoryPath = path.join(PROJECT_DIRECTORY, directoryName);
-
-    if (!(await pathIsExists(directoryPath))) {
-      continue;
-    }
-
-    const directoryFiles = await findFilesInDirectory(
-      directoryPath,
-      extensions,
-      prettierIgnorePatterns,
-    );
-
-    files.push(...directoryFiles);
-  }
-
-  return files.sort((left, right) => left.localeCompare(right));
-}
-
-function removePwtCompatibilityArgs(args: string[]): string[] {
-  const result = [];
-
-  for (let index = 0; index < args.length; index += 1) {
-    const arg = args[index];
-
-    if (arg === "--subprojectPath") {
-      index += 1;
-      continue;
-    }
-
-    if (arg.startsWith("--subprojectPath=")) {
-      continue;
-    }
-
-    if (arg === "--skip-migration") {
-      continue;
-    }
-
-    result.push(arg);
-  }
-
-  return result;
-}
-
-async function findFilesInDirectory(
-  directoryPath: string,
-  extensions: Set<string>,
-  prettierIgnorePatterns: string[],
-): Promise<string[]> {
-  const entries = await fs.readdir(directoryPath, { withFileTypes: true });
-  const files: string[] = [];
-
-  for (const entry of entries) {
-    const entryPath = path.join(directoryPath, entry.name);
-    const relativePath = toRelativePath(entryPath);
-
-    if (isIgnoredByPrettierIgnore(relativePath, prettierIgnorePatterns)) {
-      continue;
-    }
-
-    if (entry.isDirectory()) {
-      files.push(
-        ...(await findFilesInDirectory(
-          entryPath,
-          extensions,
-          prettierIgnorePatterns,
-        )),
-      );
-      continue;
-    }
-
-    if (entry.isFile() && extensions.has(path.extname(entry.name))) {
-      files.push(relativePath);
-    }
-  }
-
-  return files;
-}
-
-async function readPrettierIgnorePatterns(): Promise<string[]> {
-  const prettierIgnorePath = path.join(PROJECT_DIRECTORY, ".prettierignore");
-
-  if (!(await pathIsExists(prettierIgnorePath))) {
-    return [];
-  }
-
-  const contents = await fs.readFile(prettierIgnorePath, "utf8");
-
-  return contents
-    .split(/\r?\n/g)
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0 && !line.startsWith("#"));
-}
-
-function isIgnoredByPrettierIgnore(
-  relativePath: string,
-  patterns: string[],
-): boolean {
-  for (const pattern of patterns) {
-    if (pattern.startsWith("!")) {
-      continue;
-    }
-
-    const normalizedPattern = normalizePath(pattern).replace(/^\.?\//, "");
-
-    if (normalizedPattern.endsWith("/")) {
-      const directoryPattern = normalizedPattern.slice(0, -1);
-
-      if (
-        relativePath === directoryPattern ||
-        relativePath.startsWith(`${directoryPattern}/`)
-      ) {
-        return true;
-      }
-
-      continue;
-    }
-
-    if (
-      relativePath === normalizedPattern ||
-      relativePath.startsWith(`${normalizedPattern}/`)
-    ) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 async function runOxfmt(args: string[]): Promise<void> {
@@ -422,14 +293,6 @@ async function runPackageBin(
       resolve();
     });
   });
-}
-
-function toRelativePath(filePath: string): string {
-  return normalizePath(path.relative(PROJECT_DIRECTORY, filePath));
-}
-
-function normalizePath(filePath: string): string {
-  return filePath.split(path.sep).join("/");
 }
 
 export default lintingCommand;

@@ -261,6 +261,8 @@ const startWebCommand = async () => {
     showMessage(
       `${COLOR_ERROR("Build failed.")}\nError occurred: ${COLOR_ERROR((error as Error).message)}`,
     );
+    process.exitCode = 1;
+    throw error;
   }
 };
 

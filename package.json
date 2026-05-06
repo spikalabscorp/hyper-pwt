@@ -56,7 +56,6 @@
   "dependencies": {
     "@vitejs/plugin-react": "6.0.1",
     "chalk": "5.6.2",
-    "commander": "14.0.3",
     "fast-xml-parser": "5.7.3",
     "mendix": "10.24.104498",
     "oxfmt": "0.48.0",
