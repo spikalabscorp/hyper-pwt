@@ -117,7 +117,9 @@ async function runFormat(
   compatibilityConfig: CompatibilityConfig,
   passthroughArgs: string[] = [],
 ) {
-  const files = await findMatchingFiles(FORMAT_DIRECTORIES, FORMAT_EXTENSIONS);
+  const files = await findMatchingFiles(FORMAT_DIRECTORIES, FORMAT_EXTENSIONS, {
+    usePrettierIgnore: true,
+  });
   const biomeFiles = files.filter((file) =>
     BIOME_FORMAT_EXTENSIONS.has(path.extname(file)),
   );
@@ -233,8 +235,11 @@ async function findLegacyConfigFiles(): Promise<string[]> {
 async function findMatchingFiles(
   directoryNames: string[],
   extensions: Set<string>,
+  options: { usePrettierIgnore?: boolean } = {},
 ): Promise<string[]> {
-  const prettierIgnorePatterns = await readPrettierIgnorePatterns();
+  const prettierIgnorePatterns = options.usePrettierIgnore
+    ? await readPrettierIgnorePatterns()
+    : [];
   const files = [];
 
   for (const directoryName of directoryNames) {
