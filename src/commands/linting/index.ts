@@ -13,81 +13,80 @@ const FORMAT_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx", ".scss"]);
 const LINT_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx"]);
 const FORMAT_DIRECTORIES = ["src", "typings", "tests"];
 const LINT_DIRECTORIES = ["src"];
-const BIOME_FORMAT_EXTENSIONS = new Set([".js", ".jsx", ".ts", ".tsx"]);
 
-type BiomeCommand = "format" | "lint";
 type CompatibilityConfig = {
-  args: string[];
+  formatArgs: string[];
+  lintArgs: string[];
   cleanup: () => Promise<void>;
 };
 
 type LintingCommand = "lint" | "lint:fix" | "format";
 
-const PWT_BIOME_CONFIG = {
-  $schema: "https://biomejs.dev/schemas/2.4.14/schema.json",
-  vcs: {
-    enabled: false,
-    clientKind: "git",
-    root: PROJECT_DIRECTORY,
+const OXFMT_CONFIG_FILE_NAMES = [
+  ".oxfmtrc.json",
+  ".oxfmtrc.jsonc",
+  ".oxfmtrc.js",
+  ".oxfmtrc.mjs",
+  ".oxfmtrc.cjs",
+  ".oxfmtrc.ts",
+  ".oxfmtrc.mts",
+  ".oxfmtrc.cts",
+  "oxfmt.config.json",
+  "oxfmt.config.jsonc",
+  "oxfmt.config.js",
+  "oxfmt.config.mjs",
+  "oxfmt.config.cjs",
+  "oxfmt.config.ts",
+  "oxfmt.config.mts",
+  "oxfmt.config.cts",
+];
+
+const OXLINT_CONFIG_FILE_NAMES = [
+  ".oxlintrc.json",
+  ".oxlintrc.jsonc",
+  ".oxlintrc.js",
+  ".oxlintrc.mjs",
+  ".oxlintrc.cjs",
+  ".oxlintrc.ts",
+  ".oxlintrc.mts",
+  ".oxlintrc.cts",
+  "oxlint.config.json",
+  "oxlint.config.jsonc",
+  "oxlint.config.js",
+  "oxlint.config.mjs",
+  "oxlint.config.cjs",
+  "oxlint.config.ts",
+  "oxlint.config.mts",
+  "oxlint.config.cts",
+];
+
+const PWT_OXFMT_CONFIG = {
+  useTabs: false,
+  tabWidth: 4,
+  printWidth: 120,
+  singleQuote: false,
+  jsxSingleQuote: false,
+  quoteProps: "as-needed",
+  trailingComma: "none",
+  semi: true,
+  arrowParens: "avoid",
+  bracketSameLine: false,
+  bracketSpacing: true,
+  ignorePatterns: [],
+};
+
+const PWT_OXLINT_CONFIG = {
+  plugins: ["typescript", "unicorn", "oxc"],
+  categories: {
+    correctness: "error",
   },
-  files: {
-    ignoreUnknown: true,
+  rules: {},
+  env: {
+    builtin: true,
+    browser: true,
+    node: true,
   },
-  formatter: {
-    enabled: true,
-    indentStyle: "space",
-    indentWidth: 4,
-    lineWidth: 120,
-    bracketSpacing: true,
-    bracketSameLine: false,
-  },
-  linter: {
-    enabled: true,
-    rules: {
-      recommended: true,
-      correctness: {
-        noUnusedFunctionParameters: "off",
-        useExhaustiveDependencies: "warn",
-        useHookAtTopLevel: "warn",
-      },
-      suspicious: {
-        noExplicitAny: "off",
-      },
-      style: {
-        useImportType: "off",
-      },
-    },
-  },
-  javascript: {
-    formatter: {
-      quoteStyle: "double",
-      jsxQuoteStyle: "double",
-      trailingCommas: "none",
-      semicolons: "always",
-      arrowParentheses: "asNeeded",
-      bracketSpacing: true,
-      bracketSameLine: false,
-      indentStyle: "space",
-      indentWidth: 4,
-      lineWidth: 120,
-    },
-  },
-  css: {
-    formatter: {
-      quoteStyle: "double",
-      indentStyle: "space",
-      indentWidth: 4,
-      lineWidth: 120,
-    },
-  },
-  assist: {
-    enabled: true,
-    actions: {
-      source: {
-        organizeImports: "on",
-      },
-    },
-  },
+  ignorePatterns: [],
 };
 
 async function lintingCommand(
@@ -120,30 +119,17 @@ async function runFormat(
   const files = await findMatchingFiles(FORMAT_DIRECTORIES, FORMAT_EXTENSIONS, {
     usePrettierIgnore: true,
   });
-  const biomeFiles = files.filter((file) =>
-    BIOME_FORMAT_EXTENSIONS.has(path.extname(file)),
-  );
-  const unsupportedFiles = files.filter(
-    (file) => !BIOME_FORMAT_EXTENSIONS.has(path.extname(file)),
-  );
 
-  if (unsupportedFiles.length > 0) {
-    showMessage(
-      `Skipping ${unsupportedFiles.length} SCSS file(s) because Biome does not format SCSS yet.`,
-    );
-  }
-
-  if (biomeFiles.length === 0) {
+  if (files.length === 0) {
     showMessage("No matching files found for format.");
     return;
   }
 
-  await runBiome("format", [
-    ...compatibilityConfig.args,
-    "--files-ignore-unknown=true",
-    "--no-errors-on-unmatched",
-    ...(shouldWrite ? ["--write"] : []),
-    ...biomeFiles,
+  await runOxfmt([
+    ...compatibilityConfig.formatArgs,
+    "--no-error-on-unmatched-pattern",
+    shouldWrite ? "--write" : "--check",
+    ...files,
     ...passthroughArgs,
   ]);
 }
@@ -160,56 +146,79 @@ async function runLint(
     return;
   }
 
-  await runBiome("lint", [
-    ...compatibilityConfig.args,
-    "--files-ignore-unknown=true",
-    "--no-errors-on-unmatched",
-    ...(shouldWrite ? ["--write"] : []),
+  await runOxlint([
+    ...compatibilityConfig.lintArgs,
+    "--no-error-on-unmatched-pattern",
+    ...(shouldWrite ? ["--fix"] : []),
     ...files,
     ...passthroughArgs,
   ]);
 }
 
 async function prepareCompatibilityConfig(): Promise<CompatibilityConfig> {
-  const userBiomeConfigPath = await findUserBiomeConfig();
-
-  if (userBiomeConfigPath) {
-    return {
-      args: ["--config-path", userBiomeConfigPath],
-      cleanup: async () => {},
-    };
-  }
-
+  const [userOxfmtConfigPath, userOxlintConfigPath] = await Promise.all([
+    findUserConfig(OXFMT_CONFIG_FILE_NAMES),
+    findUserConfig(OXLINT_CONFIG_FILE_NAMES),
+  ]);
   const legacyConfigFiles = await findLegacyConfigFiles();
 
-  if (legacyConfigFiles.length > 0) {
+  let tempDirectory: string | undefined;
+  const formatArgs = userOxfmtConfigPath
+    ? ["--config", userOxfmtConfigPath]
+    : [];
+  const lintArgs = userOxlintConfigPath
+    ? ["--config", userOxlintConfigPath]
+    : [];
+
+  async function ensureTempDirectory(): Promise<string> {
+    tempDirectory ??= await fs.mkdtemp(path.join(os.tmpdir(), "hyper-pwt-ox-"));
+
+    return tempDirectory;
+  }
+
+  if (!userOxfmtConfigPath) {
+    const configPath = path.join(await ensureTempDirectory(), ".oxfmtrc.json");
+
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify(PWT_OXFMT_CONFIG, null, 2)}\n`,
+    );
+    formatArgs.push("--config", configPath);
+  }
+
+  if (!userOxlintConfigPath) {
+    const configPath = path.join(await ensureTempDirectory(), ".oxlintrc.json");
+
+    await fs.writeFile(
+      configPath,
+      `${JSON.stringify(PWT_OXLINT_CONFIG, null, 2)}\n`,
+    );
+    lintArgs.push("--config", configPath);
+  }
+
+  if (legacyConfigFiles.length > 0 && tempDirectory) {
     showMessage(
-      `Using Biome compatibility settings for legacy ${legacyConfigFiles.join(
+      `Using oxlint/oxfmt compatibility settings for legacy ${legacyConfigFiles.join(
         ", ",
       )}.`,
     );
   }
 
-  const tempDirectory = await fs.mkdtemp(
-    path.join(os.tmpdir(), "hyper-pwt-biome-"),
-  );
-  const configPath = path.join(tempDirectory, "biome.json");
-
-  await fs.writeFile(
-    configPath,
-    `${JSON.stringify(PWT_BIOME_CONFIG, null, 2)}\n`,
-  );
-
   return {
-    args: ["--config-path", configPath],
+    formatArgs,
+    lintArgs,
     cleanup: async () => {
-      await fs.rm(tempDirectory, { force: true, recursive: true });
+      if (tempDirectory) {
+        await fs.rm(tempDirectory, { force: true, recursive: true });
+      }
     },
   };
 }
 
-async function findUserBiomeConfig(): Promise<string | undefined> {
-  for (const fileName of ["biome.json", "biome.jsonc"]) {
+async function findUserConfig(
+  fileNames: string[],
+): Promise<string | undefined> {
+  for (const fileName of fileNames) {
     const configPath = path.join(PROJECT_DIRECTORY, fileName);
 
     if (await pathIsExists(configPath)) {
@@ -371,11 +380,25 @@ function isIgnoredByPrettierIgnore(
   return false;
 }
 
-async function runBiome(command: BiomeCommand, args: string[]): Promise<void> {
-  const biomeBinPath = requireFromCli.resolve("@biomejs/biome/bin/biome");
+async function runOxfmt(args: string[]): Promise<void> {
+  await runPackageBin("oxfmt", "bin/oxfmt", args, "oxfmt");
+}
+
+async function runOxlint(args: string[]): Promise<void> {
+  await runPackageBin("oxlint", "bin/oxlint", args, "oxlint");
+}
+
+async function runPackageBin(
+  packageName: string,
+  binRelativePath: string,
+  args: string[],
+  displayName: string,
+): Promise<void> {
+  const packageJsonPath = requireFromCli.resolve(`${packageName}/package.json`);
+  const binPath = path.join(path.dirname(packageJsonPath), binRelativePath);
 
   await new Promise<void>((resolve, reject) => {
-    const child = spawn(process.execPath, [biomeBinPath, command, ...args], {
+    const child = spawn(process.execPath, [binPath, ...args], {
       cwd: PROJECT_DIRECTORY,
       env: process.env,
       stdio: "inherit",
@@ -384,13 +407,15 @@ async function runBiome(command: BiomeCommand, args: string[]): Promise<void> {
     child.on("error", reject);
     child.on("exit", (code, signal) => {
       if (signal) {
-        reject(new Error(`Biome was interrupted by signal ${signal}.`));
+        reject(
+          new Error(`${displayName} was interrupted by signal ${signal}.`),
+        );
         return;
       }
 
       if (code && code !== 0) {
         process.exitCode = code;
-        reject(new Error(`Biome exited with code ${code}.`));
+        reject(new Error(`${displayName} exited with code ${code}.`));
         return;
       }
 

@@ -37,7 +37,7 @@ program
 
 program
   .command("lint")
-  .summary("lint widget source with Biome")
+  .summary("lint widget source with oxlint")
   .allowUnknownOption(true)
   .allowExcessArguments(true)
   .action(async function () {
@@ -48,7 +48,7 @@ program
 
 program
   .command("lint:fix")
-  .summary("fix lint and format issues with Biome")
+  .summary("fix lint and format issues with oxlint and oxfmt")
   .allowUnknownOption(true)
   .allowExcessArguments(true)
   .action(async function () {
@@ -59,7 +59,7 @@ program
 
 program
   .command("format")
-  .summary("format widget source with Biome")
+  .summary("format widget source with oxfmt")
   .allowUnknownOption(true)
   .allowExcessArguments(true)
   .action(async function () {
