@@ -31,17 +31,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 24.11.1
-          cache: "pnpm"
-          registry-url: "https://registry.npmjs.org"
+      - name: Setup mise
+        uses: jdx/mise-action@v4
 
       - name: Install dependencies
         run: pnpm install
@@ -125,6 +116,8 @@ jobs:
 
       - name: Publish to NPM
         run: |
+          npm config set registry "https://registry.npmjs.org"
+          npm config set //registry.npmjs.org/:_authToken "${NODE_AUTH_TOKEN}"
           npm publish --tag canary --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
