@@ -1,5 +1,5 @@
 {
   "editor.codeActionsOnSave": {
-    "source.fixAll.biome": "always"
+    "source.fixAll.oxlint": "always"
   }
 }
