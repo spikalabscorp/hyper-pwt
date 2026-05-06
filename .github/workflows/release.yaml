@@ -1,0 +1,167 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel
+        required: true
+        type: choice
+        default: latest
+        options:
+          - latest
+          - canary
+      new_features:
+        description: 'New features (use \n for line breaks, leave empty if none)'
+        required: false
+        type: string
+        default: ""
+      bug_fixes:
+        description: 'Bug fixes (use \n for line breaks, leave empty if none)'
+        required: false
+        type: string
+        default: ""
+      other_changes:
+        description: 'Other changes (use \n for line breaks, leave empty if none)'
+        required: false
+        type: string
+        default: ""
+
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      id-token: write
+
+    env:
+      NPM_CONFIG_REGISTRY: https://registry.npmjs.org
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Setup mise
+        uses: jdx/mise-action@v4
+
+      - name: Verify trusted publishing prerequisites
+        run: |
+          set -euo pipefail
+          node --version
+          npm --version
+          node -e 'const [major, minor, patch] = process.versions.node.split(".").map(Number); if (major < 22 || (major === 22 && (minor < 14 || (minor === 14 && patch < 0)))) { throw new Error(`Node ${process.versions.node} does not satisfy npm trusted publishing requirement >=22.14.0`); }'
+          node -e 'const { execSync } = require("node:child_process"); const version = execSync("npm --version", { encoding: "utf8" }).trim(); const [major, minor, patch] = version.split(".").map(Number); if (major < 11 || (major === 11 && (minor < 5 || (minor === 5 && patch < 1)))) { throw new Error(`npm ${version} does not satisfy npm trusted publishing requirement >=11.5.1`); }'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Resolve release metadata
+        id: release
+        env:
+          CHANNEL: ${{ inputs.channel }}
+        run: |
+          set -euo pipefail
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+
+          case "$CHANNEL" in
+            latest)
+              VERSION="$PACKAGE_VERSION"
+              DIST_TAG="latest"
+              PRERELEASE="false"
+              ;;
+            canary)
+              SHORT_SHA=$(git rev-parse --short HEAD)
+              VERSION="${PACKAGE_VERSION}-canary-${SHORT_SHA}"
+              DIST_TAG="canary"
+              PRERELEASE="true"
+              ;;
+            *)
+              echo "Unsupported release channel: $CHANNEL" >&2
+              exit 1
+              ;;
+          esac
+
+          {
+            echo "version=$VERSION"
+            echo "dist_tag=$DIST_TAG"
+            echo "prerelease=$PRERELEASE"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create and push tag
+        run: |
+          set -euo pipefail
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag -a "${{ steps.release.outputs.version }}" -m "${{ steps.release.outputs.dist_tag }} release ${{ steps.release.outputs.version }}"
+          git push origin "${{ steps.release.outputs.version }}"
+
+      - name: Prepare release notes
+        env:
+          NEW_FEATURES: ${{ inputs.new_features }}
+          BUG_FIXES: ${{ inputs.bug_fixes }}
+          OTHER_CHANGES: ${{ inputs.other_changes }}
+        run: |
+          set -euo pipefail
+          : > release_body.txt
+
+          add_section() {
+            local title="$1"
+            local content="$2"
+
+            if [ -n "$content" ]; then
+              printf '## %s\n' "$title" >> release_body.txt
+              printf '%s\n' "$content" | sed 's/\\n/\n/g' | sed 's/^[[:space:]]*-*/- /' | sed '/^[[:space:]]*$/d' >> release_body.txt
+              printf '\n' >> release_body.txt
+            fi
+          }
+
+          add_section "New Features" "$NEW_FEATURES"
+          add_section "Bug Fixes" "$BUG_FIXES"
+          add_section "Other Changes" "$OTHER_CHANGES"
+
+          cat >> release_body.txt << EOF
+          ## Installation
+          \`\`\`bash
+          npm install --dev @repixelcorp/hyper-pwt@${{ steps.release.outputs.version }}
+          \`\`\`
+          EOF
+
+          if [ "${{ steps.release.outputs.prerelease }}" = "true" ]; then
+            cat >> release_body.txt << 'EOF'
+
+          ## Warning
+          This is a canary release and should not be used in production environments.
+          EOF
+          fi
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          args=(
+            gh release create "${{ steps.release.outputs.version }}"
+            --title "${{ steps.release.outputs.version }}"
+            --notes-file release_body.txt
+            --verify-tag
+          )
+
+          if [ "${{ steps.release.outputs.prerelease }}" = "true" ]; then
+            args+=(--prerelease)
+          fi
+
+          "${args[@]}"
+
+      - name: Update package.json version
+        run: npm version "${{ steps.release.outputs.version }}" --no-git-tag-version --allow-same-version
+
+      - name: Build package
+        run: pnpm build
+
+      - name: Publish to npm
+        run: npm publish --tag "${{ steps.release.outputs.dist_tag }}" --access public
