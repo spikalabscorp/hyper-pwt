@@ -1,5 +1,5 @@
 {
-  "name": "@shiianamchi/hyper-pwt",
+  "name": "hyper-pwt",
   "version": "0.5.0",
   "description": "A faster, more modern, superior alternative for Mendix PWT.",
   "type": "module",

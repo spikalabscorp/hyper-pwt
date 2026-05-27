@@ -15,6 +15,6 @@
     "test:unit:web": "hyper-pwt test:unit:web"
   },
   "devDependencies": {
-    "@shiianamchi/hyper-pwt": "file:../../.."
+    "hyper-pwt": "file:../../.."
   }
 }

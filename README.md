@@ -11,7 +11,7 @@ Bascially, hyper-pwt is a drop-in replacement for Mendix PWT.
 First, install hyper-pwt from npm.
 
 ```bash
-npm install --dev @shiianamchi/hyper-pwt
+npm install --dev hyper-pwt
 ```
 
 Second, replace pluggable-widgets-tools to hyper-pwt in widget's package.json.
@@ -38,7 +38,7 @@ Third, open tsconfig.json and change extends to hyper-pwt like below.
 
 ```json
 {
-  "extends": "@shiianamchi/hyper-pwt/src/configurations/typescript/tsconfig.base",
+  "extends": "hyper-pwt/src/configurations/typescript/tsconfig.base",
   "include": ["./src", "./typings"]
 }
 ```
@@ -56,7 +56,7 @@ If the widget does not function properly after installing hyper-pwt, you can cus
 Create vite.config.mjs on your pwt root directory.
 
 ```javascript
-import { definePWTConfig } from "@shiianamchi/hyper-pwt";
+import { definePWTConfig } from "hyper-pwt";
 
 export default definePWTConfig(() => {
   return {
@@ -68,7 +68,7 @@ export default definePWTConfig(() => {
 hyper-pwt uses the [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react) plugin. The settings for this plugin can be changed as follows.
 
 ```javascript
-import { definePWTConfig } from "@shiianamchi/hyper-pwt";
+import { definePWTConfig } from "hyper-pwt";
 
 export default definePWTConfig(() => {
   return {
@@ -82,7 +82,7 @@ export default definePWTConfig(() => {
 definePWTConfig also supports asynchronous mode. It can be used as follows.
 
 ```javascript
-import { definePWTConfig } from "@shiianamchi/hyper-pwt";
+import { definePWTConfig } from "hyper-pwt";
 
 export default definePWTConfig(async () => {
   const promise = await somethingPromise();
@@ -132,11 +132,11 @@ If you wish to reproduce the benchmark results, you can do so using the tools an
 
 ### Web Widget Build
 
-| Category      | @mendix/pluggable-widgets-tools | @shiianamchi/hyper-pwt | Result                          |
-| ------------- | ------------------------------- | ---------------------- | ------------------------------- |
-| Build time    | 27475ms                         | 4135ms                 | **-23340.00ms (84.95% faster)** |
-| Memory Usage  | 0.11MB                          | 0.08MB                 | **-0.03MB (26.93% less)**       |
-| MPK File Size | 1.26MB                          | 557.08KB               | **-731.37KB (56.76% less)**     |
+| Category      | @mendix/pluggable-widgets-tools | hyper-pwt | Result                          |
+| ------------- | ------------------------------- | --------- | ------------------------------- |
+| Build time    | 27475ms                         | 4135ms    | **-23340.00ms (84.95% faster)** |
+| Memory Usage  | 0.11MB                          | 0.08MB    | **-0.03MB (26.93% less)**       |
+| MPK File Size | 1.26MB                          | 557.08KB  | **-731.37KB (56.76% less)**     |
 
 ### Native Widget
 
@@ -170,7 +170,7 @@ TODO
 
 ## License
 
-@shiianamchi/hyper-pwt is distributed under the MIT License.
+hyper-pwt is distributed under the MIT License.
 
 Please refer to the [LICENSE](./LICENSE).
 

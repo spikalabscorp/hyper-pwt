@@ -28,7 +28,7 @@
     },
     "devDependencies": {
         "@mendix/pluggable-widgets-tools": "^11.8.1",
-        "@shiianamchi/hyper-pwt": "0.4.0-canary-ae3cc61",
+        "hyper-pwt": "0.4.0-canary-ae3cc61",
         "@types/big.js": "^6.2.2",
         "@types/react-big-calendar": "^1.16.3"
     },
