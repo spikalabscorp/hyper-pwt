@@ -1,11 +1,11 @@
 {
-  "name": "@repixelcorp/hyper-pwt",
+  "name": "@shiianamchi/hyper-pwt",
   "version": "0.5.0",
   "description": "A faster, more modern, superior alternative for Mendix PWT.",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spikalabscorp/hyper-pwt.git"
+    "url": "git+https://github.com/shiianamchi/hyper-pwt.git"
   },
   "scripts": {
     "build": "rslib build",
@@ -44,7 +44,7 @@
     "mendix-pwt",
     "pluggable-widgets-tools"
   ],
-  "author": "Repixel Co., Ltd.",
+  "author": "shiianamchi",
   "license": "MIT",
   "packageManager": "pnpm@10.33.3",
   "devDependencies": {

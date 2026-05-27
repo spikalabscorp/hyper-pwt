@@ -127,7 +127,7 @@ jobs:
           cat >> release_body.txt << EOF
           ## Installation
           \`\`\`bash
-          npm install --dev @repixelcorp/hyper-pwt@${{ steps.release.outputs.version }}
+          npm install --dev @shiianamchi/hyper-pwt@${{ steps.release.outputs.version }}
           \`\`\`
           EOF
 

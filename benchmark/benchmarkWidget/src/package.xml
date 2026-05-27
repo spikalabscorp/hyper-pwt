@@ -5,7 +5,7 @@
             <widgetFile path="BenchmarkWidget.xml"/>
         </widgetFiles>
         <files>
-            <file path="kr/co/repixel/benchmarkwidget"/>
+            <file path="shiianamchi/benchmarkwidget"/>
         </files>
     </clientModule>
 </package>

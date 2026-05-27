@@ -5,7 +5,7 @@ export const PROJECT_DIRECTORY = process.cwd();
 
 export const CLI_DIRECTORY = path.join(
   PROJECT_DIRECTORY,
-  "node_modules/@repixelcorp/hyper-pwt",
+  "node_modules/@shiianamchi/hyper-pwt",
 );
 
 export const DIST_DIRECTORY_NAME = "dist";

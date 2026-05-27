@@ -1,6 +1,6 @@
 # hyper-pwt Benchmark Tool
 
-Benchmark tool for comparing the speed of Mendix PWT and @repixelcorp/hyper-pwt.
+Benchmark tool for comparing the speed of Mendix PWT and @shiianamchi/hyper-pwt.
 
 ## How to test on my environment
 
