@@ -1,0 +1,20 @@
+{
+  "name": "unit-web-widget",
+  "widgetName": "UnitWebWidget",
+  "version": "1.0.0",
+  "description": "Fixture widget for hyper-pwt web unit tests",
+  "license": "UNLICENSED",
+  "config": {
+    "projectPath": "../mendix-project",
+    "mendixHost": "http://localhost:8080",
+    "developmentPort": 3000
+  },
+  "packagePath": "com.example",
+  "scripts": {
+    "test:unit": "hyper-pwt test:unit",
+    "test:unit:web": "hyper-pwt test:unit:web"
+  },
+  "devDependencies": {
+    "@repixelcorp/hyper-pwt": "file:../../.."
+  }
+}

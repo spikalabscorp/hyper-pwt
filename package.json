@@ -11,6 +11,7 @@
     "build": "rslib build",
     "watch": "rslib build --watch",
     "start": "pnpm build && node ./dist/cli.cjs",
+    "test:unit:web": "node ./tools/verify-unit-web.mjs",
     "package": "pnpm build && pnpm pack",
     "prepare": "husky",
     "lint": "oxfmt --check . && oxlint .",
