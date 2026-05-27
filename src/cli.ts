@@ -3,6 +3,7 @@
 import buildWebCommand from "./commands/build/web";
 import lintingCommand from "./commands/linting";
 import startWebCommand from "./commands/start/web";
+import testUnitWebCommand from "./commands/test/unit/web";
 import { COLOR_ERROR } from "./constants";
 import showMessage from "./utils/showMessage";
 
@@ -57,6 +58,14 @@ async function runCommand(cmd: string | undefined, args: string[]) {
       showRunMessage(cmd);
       await runCliAction(async () => {
         await lintingCommand(cmd as LintingCommand, args);
+      });
+      return;
+
+    case "test:unit":
+    case "test:unit:web":
+      showRunMessage(cmd);
+      await runCliAction(async () => {
+        await testUnitWebCommand(args);
       });
       return;
 
