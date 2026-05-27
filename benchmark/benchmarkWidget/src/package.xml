@@ -5,7 +5,7 @@
             <widgetFile path="BenchmarkWidget.xml"/>
         </widgetFiles>
         <files>
-            <file path="shiianamchi/benchmarkwidget"/>
+            <file path="shiinamachi/benchmarkwidget"/>
         </files>
     </clientModule>
 </package>

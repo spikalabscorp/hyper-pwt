@@ -1,6 +1,6 @@
 # hyper-pwt
 
-<img src="https://raw.githubusercontent.com/shiianamchi/hyper-pwt/main/static/header.png" alt="hyper-pwt" width="100%" height="auto">
+<img src="https://raw.githubusercontent.com/shiinamachi/hyper-pwt/main/static/header.png" alt="hyper-pwt" width="100%" height="auto">
 
 A faster, more modern, superior alternative for [Mendix PWT](https://github.com/mendix/widgets-tools).
 
@@ -178,11 +178,11 @@ Please refer to the [LICENSE](./LICENSE).
 
 ### No Warranty
 
-THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. THE DEVELOPERS AND shiianamchi DO NOT GUARANTEE THAT THE SOFTWARE IS FREE OF BUGS, ERRORS, OR OTHER DEFECTS.
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. THE DEVELOPERS AND shiinamachi DO NOT GUARANTEE THAT THE SOFTWARE IS FREE OF BUGS, ERRORS, OR OTHER DEFECTS.
 
 ### Limitation of Liability
 
-IN NO EVENT SHALL THE DEVELOPERS OR shiianamchi BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. THIS INCLUDES, BUT IS NOT LIMITED TO, LOSS OF DATA, DAMAGE TO MENDIX PROJECTS, BUSINESS INTERRUPTION, OR LOST PROFITS. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH YOU.
+IN NO EVENT SHALL THE DEVELOPERS OR shiinamachi BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. THIS INCLUDES, BUT IS NOT LIMITED TO, LOSS OF DATA, DAMAGE TO MENDIX PROJECTS, BUSINESS INTERRUPTION, OR LOST PROFITS. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH YOU.
 
 ### User Responsibility & Data Backup
 
@@ -190,7 +190,7 @@ IT IS THE USER'S SOLE RESPONSIBILITY TO ENSURE THE ADEQUATE BACKUP OF ANY AND AL
 
 ### Unofficial Tool & Trademarks
 
-This is an unofficial tool developed independently by shiianamchi and is not affiliated with, endorsed, sponsored, or supported by Mendix Technology BV or its parent company Siemens AG.
+This is an unofficial tool developed independently by shiinamachi and is not affiliated with, endorsed, sponsored, or supported by Mendix Technology BV or its parent company Siemens AG.
 
 Mendix® is a registered trademark of Mendix Technology BV. Any use of the Mendix trademark is for nominative purposes only, to identify that this tool is designed to work with the Mendix platform, and does not imply any official association.
 
