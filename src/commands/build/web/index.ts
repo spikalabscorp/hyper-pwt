@@ -3,8 +3,7 @@ import path from "node:path";
 import { type InlineConfig, type UserConfig, build as viteBuild } from "vite";
 import { zip } from "zip-a-folder";
 import {
-  getEditorConfigDefaultConfig,
-  getEditorPreviewDefaultConfig,
+  getDesignTimeDefaultConfigs,
   getViteDefaultConfig,
 } from "../../../configurations/vite";
 import {
@@ -110,28 +109,22 @@ const buildWebCommand = async (isProduction: boolean = false) => {
 
     showMessage("Start build");
 
-    const editorConfigViteConfig =
-      await getEditorConfigDefaultConfig(isProduction);
-    const editorPreviewViteConfig =
-      await getEditorPreviewDefaultConfig(isProduction);
+    const designTimeViteConfigs =
+      await getDesignTimeDefaultConfigs(isProduction);
     const viteBuildConfigs: InlineConfig[] = [
       {
         ...resultViteConfig,
         configFile: false,
         root: PROJECT_DIRECTORY,
       },
-      {
-        ...editorConfigViteConfig,
-        configFile: false,
-        root: PROJECT_DIRECTORY,
-        logLevel: "silent",
-      },
-      {
-        ...editorPreviewViteConfig,
-        configFile: false,
-        root: PROJECT_DIRECTORY,
-        logLevel: "silent",
-      },
+      ...designTimeViteConfigs.map(
+        (config): InlineConfig => ({
+          ...config,
+          configFile: false,
+          root: PROJECT_DIRECTORY,
+          logLevel: "silent",
+        }),
+      ),
     ];
 
     await Promise.all(
@@ -157,6 +150,8 @@ const buildWebCommand = async (isProduction: boolean = false) => {
     showMessage(
       `${COLOR_ERROR("Build failed.")}\nError occurred: ${COLOR_ERROR((error as Error).stack)}`,
     );
+    process.exitCode = 1;
+    throw error;
   }
 };
 

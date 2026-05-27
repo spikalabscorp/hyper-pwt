@@ -1,34 +1,128 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 import react from "@vitejs/plugin-react";
 import typescript from "rollup-plugin-typescript2";
-import type { UserConfig } from "vite";
+import type { PluginOption, UserConfig } from "vite";
 import type { PWTConfig } from "../..";
 import { PROJECT_DIRECTORY, WEB_OUTPUT_DIRECTORY } from "../../constants";
 import getViteOutputDirectory from "../../utils/getViteOutputDirectory";
 import getWidgetName from "../../utils/getWidgetName";
+import { mendixDependenciesLicensePlugin } from "./plugins/mendix-dependencies-license-plugin";
+
+const commonExternalLibs = [
+  /^mendix($|\/)/,
+  /^react$/,
+  /^react\/jsx-runtime$/,
+  /^react-dom$/,
+];
+
+const escapeRegExp = (value: string) => {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
+
+const resolveWidgetSourceEntry = async (
+  widgetName: string,
+  matcher: RegExp,
+) => {
+  const sourceDirectory = path.join(PROJECT_DIRECTORY, "src");
+  const sourceFiles = await fs.readdir(sourceDirectory);
+  const entry = sourceFiles.find((file) => matcher.test(file));
+
+  return entry ? path.join(sourceDirectory, entry) : undefined;
+};
+
+const importTypeScript = new Function(
+  "specifier",
+  "return import(specifier)",
+) as (specifier: string) => Promise<typeof import("typescript")>;
+let typescriptModulePromise: Promise<typeof import("typescript")> | undefined;
+
+const loadTypeScript = () => {
+  typescriptModulePromise ??= importTypeScript("typescript");
+
+  return typescriptModulePromise;
+};
+
+const mendixEditorConfigEs5OutputPlugin = (): PluginOption => {
+  return {
+    name: "mendix-editor-config-es5-output-plugin",
+    async generateBundle(_options, bundle) {
+      const ts = await loadTypeScript();
+
+      for (const output of Object.values(bundle)) {
+        if (output.type !== "chunk") {
+          continue;
+        }
+
+        const transpiled = ts.transpileModule(output.code, {
+          compilerOptions: {
+            module: ts.ModuleKind.CommonJS,
+            target: ts.ScriptTarget.ES5,
+          },
+        });
+
+        output.code = transpiled.outputText.trimEnd();
+      }
+    },
+  };
+};
+
+export const resolveEditorConfigEntry = async (widgetName: string) => {
+  return resolveWidgetSourceEntry(
+    widgetName,
+    new RegExp(`^${escapeRegExp(widgetName)}\\.editorConfig\\.[jt]s$`, "i"),
+  );
+};
+
+export const resolveEditorPreviewEntry = async (widgetName: string) => {
+  return resolveWidgetSourceEntry(
+    widgetName,
+    new RegExp(
+      `^${escapeRegExp(widgetName)}\\.(webmodeler|editorPreview)\\.[jt]sx?$`,
+      "i",
+    ),
+  );
+};
 
 export const getEditorConfigDefaultConfig = async (
   isProduction: boolean,
-): Promise<UserConfig> => {
+  outDir: string = WEB_OUTPUT_DIRECTORY,
+): Promise<UserConfig | undefined> => {
   const widgetName = await getWidgetName();
+  const editorConfigEntry = await resolveEditorConfigEntry(widgetName);
+
+  if (!editorConfigEntry) {
+    return undefined;
+  }
 
   return {
-    plugins: [],
+    plugins: [mendixEditorConfigEs5OutputPlugin()],
     build: {
-      outDir: WEB_OUTPUT_DIRECTORY,
+      outDir,
+      target: "es2015",
       minify: !!isProduction,
       emptyOutDir: false,
-      sourcemap: !isProduction,
+      sourcemap: false,
       lib: {
-        entry: path.join(
-          PROJECT_DIRECTORY,
-          `/src/${widgetName}.editorConfig.ts`,
-        ),
-        name: `${widgetName}.editorConfig`,
+        entry: editorConfigEntry,
         fileName: () => {
           return `${widgetName}.editorConfig.js`;
         },
-        formats: ["umd"],
+        formats: ["cjs"],
+      },
+      rolldownOptions: {
+        external: commonExternalLibs,
+        output: {
+          banner: "'use strict';",
+          esModule: false,
+          generatedCode: {
+            preset: "es5",
+            symbols: false,
+          },
+        },
+        treeshake: {
+          moduleSideEffects: false,
+        },
       },
     },
   };
@@ -36,13 +130,19 @@ export const getEditorConfigDefaultConfig = async (
 
 export const getEditorPreviewDefaultConfig = async (
   isProduction: boolean,
-): Promise<UserConfig> => {
+  outDir: string = WEB_OUTPUT_DIRECTORY,
+): Promise<UserConfig | undefined> => {
   const widgetName = await getWidgetName();
+  const editorPreviewEntry = await resolveEditorPreviewEntry(widgetName);
+
+  if (!editorPreviewEntry) {
+    return undefined;
+  }
 
   return {
     plugins: [
       react({
-        jsxRuntime: "classic",
+        jsxRuntime: "automatic",
       }),
     ],
     define: {
@@ -50,40 +150,42 @@ export const getEditorPreviewDefaultConfig = async (
       "process.env.NODE_ENV": '"production"',
     },
     build: {
-      outDir: WEB_OUTPUT_DIRECTORY,
+      outDir,
       minify: !!isProduction,
       emptyOutDir: false,
-      sourcemap: !isProduction,
+      sourcemap: !isProduction ? "inline" : false,
       lib: {
-        entry: path.join(
-          PROJECT_DIRECTORY,
-          `/src/${widgetName}.editorPreview.tsx`,
-        ),
-        name: `${widgetName}.editorPreview`,
+        entry: editorPreviewEntry,
         fileName: () => {
           return `${widgetName}.editorPreview.js`;
         },
-        formats: ["umd"],
+        formats: ["cjs"],
       },
       rolldownOptions: {
-        external: [
-          "react",
-          "react-dom",
-          "react-dom/client",
-          "react/jsx-runtime",
-          "react/jsx-dev-runtime",
-          /^mendix($|\/)/,
-        ],
+        external: commonExternalLibs,
         output: {
-          globals: {
-            react: "React",
-            "react-dom": "ReactDOM",
-            "react-dom/client": "ReactDOM",
+          banner: "'use strict';",
+          esModule: false,
+          generatedCode: {
+            preset: "es5",
+            symbols: false,
           },
         },
       },
     },
   };
+};
+
+export const getDesignTimeDefaultConfigs = async (
+  isProduction: boolean,
+  outDir: string = WEB_OUTPUT_DIRECTORY,
+): Promise<UserConfig[]> => {
+  const configs = await Promise.all([
+    getEditorConfigDefaultConfig(isProduction, outDir),
+    getEditorPreviewDefaultConfig(isProduction, outDir),
+  ]);
+
+  return configs.filter((config): config is UserConfig => !!config);
 };
 
 export const getViteDefaultConfig = async (
@@ -96,9 +198,17 @@ export const getViteDefaultConfig = async (
   return {
     plugins: [
       react({
-        ...(userCustomConfig?.reactPluginOptions || {}),
+        ...userCustomConfig?.reactPluginOptions,
         jsxRuntime: "classic",
       }),
+      ...(isProduction
+        ? [
+            mendixDependenciesLicensePlugin({
+              outputDir: WEB_OUTPUT_DIRECTORY,
+              projectDir: PROJECT_DIRECTORY,
+            }),
+          ]
+        : []),
     ],
     define: {
       "process.env": {},
@@ -144,12 +254,9 @@ export const getViteDefaultConfig = async (
           }),
         ],
         external: [
-          "react",
-          "react-dom",
+          ...commonExternalLibs,
           "react-dom/client",
-          "react/jsx-runtime",
           "react/jsx-dev-runtime",
-          /^mendix($|\/)/,
         ],
         output: {
           globals: {

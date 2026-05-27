@@ -1,4 +1,4 @@
 ignoredBuiltDependencies:
-  - '@swc/core'
+  - "@swc/core"
   - core-js
   - esbuild

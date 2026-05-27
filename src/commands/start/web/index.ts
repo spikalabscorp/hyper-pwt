@@ -1,8 +1,17 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import typescript from "rollup-plugin-typescript2";
-import { createServer, type PluginOption, type UserConfig } from "vite";
-import { getViteDefaultConfig } from "../../../configurations/vite";
+import {
+  build as viteBuild,
+  createServer,
+  type InlineConfig,
+  type PluginOption,
+  type UserConfig,
+} from "vite";
+import {
+  getDesignTimeDefaultConfigs,
+  getViteDefaultConfig,
+} from "../../../configurations/vite";
 import { mendixHotreloadReactPlugin } from "../../../configurations/vite/plugins/mendix-hotreload-react-plugin";
 import { mendixPatchViteClientPlugin } from "../../../configurations/vite/plugins/mendix-patch-vite-client-plugin";
 import {
@@ -109,6 +118,45 @@ const syncDeploymentMetadata = async (widgetName: string) => {
   }
 };
 
+const buildDesignTimeArtifacts = async () => {
+  const mendixProjectDirectory = await getMendixProjectDirectory();
+  const widgetsRoot = path.join(
+    mendixProjectDirectory,
+    "deployment/web/widgets",
+  );
+  const designTimeViteConfigs = await getDesignTimeDefaultConfigs(
+    false,
+    widgetsRoot,
+  );
+  const viteBuildConfigs: InlineConfig[] = designTimeViteConfigs.map(
+    (config): InlineConfig => ({
+      ...config,
+      configFile: false,
+      root: PROJECT_DIRECTORY,
+      logLevel: "silent",
+    }),
+  );
+
+  await fs.mkdir(widgetsRoot, { recursive: true });
+  await Promise.all(
+    viteBuildConfigs.map(async (config) => {
+      await viteBuild(config);
+    }),
+  );
+};
+
+const isDesignTimeSource = (file: string) => {
+  const relativePath = path
+    .relative(PROJECT_DIRECTORY, file)
+    .split(path.sep)
+    .join("/");
+
+  return (
+    relativePath.startsWith("src/") &&
+    /\.(css|js|jsx|sass|scss|svg|ts|tsx|xml)$/i.test(relativePath)
+  );
+};
+
 const startWebCommand = async () => {
   try {
     showMessage("Start widget server");
@@ -160,6 +208,23 @@ const startWebCommand = async () => {
       new Set([...existingOptimizeDepsExclude, ...reactDeps]),
     );
     const serverConfig = resultViteConfig.server ?? {};
+    let designTimeBuildTimer: NodeJS.Timeout | undefined;
+    const scheduleDesignTimeBuild = () => {
+      if (designTimeBuildTimer) {
+        clearTimeout(designTimeBuildTimer);
+      }
+
+      designTimeBuildTimer = setTimeout(() => {
+        designTimeBuildTimer = undefined;
+        buildDesignTimeArtifacts().catch((error: unknown) => {
+          showMessage(
+            `${COLOR_ERROR("Design-time bundle build failed.")}\nError occurred: ${COLOR_ERROR(
+              (error as Error).message,
+            )}`,
+          );
+        });
+      }, 100);
+    };
 
     const viteServer = await createServer({
       ...resultViteConfig,
@@ -174,12 +239,12 @@ const startWebCommand = async () => {
         cors: true,
         fs: {
           strict: false,
-          ...(serverConfig.fs ?? {}),
+          ...serverConfig.fs,
         },
         watch: {
           usePolling: true,
           interval: 100,
-          ...(serverConfig.watch ?? {}),
+          ...serverConfig.watch,
         },
       },
       plugins: [
@@ -205,9 +270,31 @@ const startWebCommand = async () => {
           configureServer(server) {
             server.watcher.on("change", (file) => {
               if (file.endsWith("xml")) {
-                generateTyping();
+                generateTyping()
+                  .then(() => {
+                    scheduleDesignTimeBuild();
+                  })
+                  .catch((error: unknown) => {
+                    showMessage(
+                      `${COLOR_ERROR("Type generation failed.")}\nError occurred: ${COLOR_ERROR(
+                        (error as Error).message,
+                      )}`,
+                    );
+                  });
               }
             });
+          },
+        },
+        {
+          name: "mendix-design-time-watch-plugin",
+          configureServer(server) {
+            for (const event of ["add", "change", "unlink"] as const) {
+              server.watcher.on(event, (file) => {
+                if (!file.endsWith("xml") && isDesignTimeSource(file)) {
+                  scheduleDesignTimeBuild();
+                }
+              });
+            }
           },
         },
       ],
@@ -252,6 +339,7 @@ const startWebCommand = async () => {
     await fs.writeFile(dummyCssPath, "");
 
     await syncDeploymentMetadata(widgetName);
+    await buildDesignTimeArtifacts();
 
     showMessage(`${COLOR_GREEN("Widget hot reload is ready!")}`);
     showMessage(
@@ -261,6 +349,8 @@ const startWebCommand = async () => {
     showMessage(
       `${COLOR_ERROR("Build failed.")}\nError occurred: ${COLOR_ERROR((error as Error).message)}`,
     );
+    process.exitCode = 1;
+    throw error;
   }
 };
 

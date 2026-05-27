@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<widget id="com.example.unitwebwidget.UnitWebWidget" needsEntityContext="false" offlineCapable="true" pluginWidget="true" supportedPlatform="Web" xmlns="http://www.mendix.com/widget/1.0/">
+  <name>UnitWebWidget</name>
+  <description>Fixture widget</description>
+  <properties />
+</widget>
