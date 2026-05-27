@@ -3,7 +3,7 @@ const styles = require("./styles.css");
 require("./theme.less");
 require("./theme.scss");
 require("./theme.sass");
-const imageName = require("./pixel.png");
+const imageTransformer = require("./pixel.png");
 const SvgIcon = require("./icon.svg");
 const { Icon } = require("mendix/components/web/Icon");
 const filterBuilders = require("mendix/filters/builders");
@@ -18,7 +18,9 @@ describe("Mendix PWT web Jest compatibility", () => {
     expect(new TextEncoder().encode("A")[0]).toBe(65);
     expect(new TextDecoder().decode(Uint8Array.from([65]))).toBe("A");
     expect(styles.fixtureClass).toBe("fixtureClass");
-    expect(imageName).toBe("pixel.png");
+    expect(imageTransformer.process("", "/tmp/pixel.png").code).toContain(
+      '"pixel.png"',
+    );
 
     const svg = SvgIcon({ role: "img" });
     expect(svg.type).toBe("svg");
