@@ -24,6 +24,7 @@ Second, replace pluggable-widgets-tools to hyper-pwt in widget's package.json.
     "lint": "hyper-pwt lint",
     "lint:fix": "hyper-pwt lint:fix",
     "format": "hyper-pwt format",
+    "test:unit": "hyper-pwt test:unit:web",
     "prerelease": "npm run lint",
     "release": "hyper-pwt release:web"
   }
@@ -110,6 +111,19 @@ The command targets follow Mendix PWT:
 - `lint:fix`: format write for `src`, `typings`, and `tests`, then fix `src`.
 - `format`: format write for `src`, `typings`, and `tests`.
 
+## Unit testing
+
+hyper-pwt runs `test:unit` and `test:unit:web` with the web Jest
+configuration used by Mendix PWT. Jest arguments are passed through, so common
+flags such as `--runInBand`, `--coverage`, `--coverage=false`, `--ci`,
+`--no-cache`, and `--u` work as they do with PWT. The Mendix
+`--subprojectPath <value>` wrapper argument is stripped before Jest is invoked.
+
+The default web unit-test configuration discovers
+`src/**/*.spec.{js,jsx,ts,tsx}`, runs in `jsdom`, loads
+`@testing-library/jest-dom`, provides `TextEncoder` and `TextDecoder`, and
+writes coverage to `dist/coverage` when coverage is enabled.
+
 ## Performance compare with Mendix PWT
 
 The results below were obtained using our own tools within the [benchmark directory](./benchmark), and the code for the benchmarked widgets is also available for review.
@@ -139,7 +153,7 @@ TODO
 - [x] lint
 - [x] lint:fix
 - [x] format
-- [ ] test:unit:web
+- [x] test:unit:web
 - [ ] test:unit:native
 - [ ] Widget Generator
 
@@ -148,7 +162,7 @@ TODO
 - [x] Web
   - [x] Basic Functions
   - [x] Linter and Formatting
-  - [ ] TDD Functions
+  - [x] TDD Functions
 - [ ] Native
   - [ ] Basic Functions
   - [ ] Linter and Formatting
