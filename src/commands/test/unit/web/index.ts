@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { PROJECT_DIRECTORY } from "../../../../constants";
 
 const requireFromCli = createRequire(import.meta.url);
-const PACKAGE_NAME = "@repixelcorp/hyper-pwt";
+const PACKAGE_NAME = "hyper-pwt";
 
 async function testUnitWebCommand(args: string[] = []): Promise<void> {
   const packageRoot = findPackageRoot();

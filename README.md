@@ -1,6 +1,6 @@
 # hyper-pwt
 
-<img src="https://raw.githubusercontent.com/repixelcorp/hyper-pwt/main/static/header.png" alt="hyper-pwt" width="100%" height="auto">
+<img src="https://raw.githubusercontent.com/shiianamchi/hyper-pwt/main/static/header.png" alt="hyper-pwt" width="100%" height="auto">
 
 A faster, more modern, superior alternative for [Mendix PWT](https://github.com/mendix/widgets-tools).
 
@@ -11,7 +11,7 @@ Bascially, hyper-pwt is a drop-in replacement for Mendix PWT.
 First, install hyper-pwt from npm.
 
 ```bash
-npm install --dev @repixelcorp/hyper-pwt
+npm install --dev hyper-pwt
 ```
 
 Second, replace pluggable-widgets-tools to hyper-pwt in widget's package.json.
@@ -38,7 +38,7 @@ Third, open tsconfig.json and change extends to hyper-pwt like below.
 
 ```json
 {
-  "extends": "@repixelcorp/hyper-pwt/src/configurations/typescript/tsconfig.base",
+  "extends": "hyper-pwt/src/configurations/typescript/tsconfig.base",
   "include": ["./src", "./typings"]
 }
 ```
@@ -56,7 +56,7 @@ If the widget does not function properly after installing hyper-pwt, you can cus
 Create vite.config.mjs on your pwt root directory.
 
 ```javascript
-import { definePWTConfig } from "@repixelcorp/hyper-pwt";
+import { definePWTConfig } from "hyper-pwt";
 
 export default definePWTConfig(() => {
   return {
@@ -68,7 +68,7 @@ export default definePWTConfig(() => {
 hyper-pwt uses the [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react) plugin. The settings for this plugin can be changed as follows.
 
 ```javascript
-import { definePWTConfig } from "@repixelcorp/hyper-pwt";
+import { definePWTConfig } from "hyper-pwt";
 
 export default definePWTConfig(() => {
   return {
@@ -82,7 +82,7 @@ export default definePWTConfig(() => {
 definePWTConfig also supports asynchronous mode. It can be used as follows.
 
 ```javascript
-import { definePWTConfig } from "@repixelcorp/hyper-pwt";
+import { definePWTConfig } from "hyper-pwt";
 
 export default definePWTConfig(async () => {
   const promise = await somethingPromise();
@@ -132,11 +132,11 @@ If you wish to reproduce the benchmark results, you can do so using the tools an
 
 ### Web Widget Build
 
-| Category      | @mendix/pluggable-widgets-tools | @repixelcorp/hyper-pwt | Result                          |
-| ------------- | ------------------------------- | ---------------------- | ------------------------------- |
-| Build time    | 27475ms                         | 4135ms                 | **-23340.00ms (84.95% faster)** |
-| Memory Usage  | 0.11MB                          | 0.08MB                 | **-0.03MB (26.93% less)**       |
-| MPK File Size | 1.26MB                          | 557.08KB               | **-731.37KB (56.76% less)**     |
+| Category      | @mendix/pluggable-widgets-tools | hyper-pwt | Result                          |
+| ------------- | ------------------------------- | --------- | ------------------------------- |
+| Build time    | 27475ms                         | 4135ms    | **-23340.00ms (84.95% faster)** |
+| Memory Usage  | 0.11MB                          | 0.08MB    | **-0.03MB (26.93% less)**       |
+| MPK File Size | 1.26MB                          | 557.08KB  | **-731.37KB (56.76% less)**     |
 
 ### Native Widget
 
@@ -170,7 +170,7 @@ TODO
 
 ## License
 
-@repixelcorp/hyper-pwt is distributed under the MIT License.
+hyper-pwt is distributed under the MIT License.
 
 Please refer to the [LICENSE](./LICENSE).
 
@@ -178,11 +178,11 @@ Please refer to the [LICENSE](./LICENSE).
 
 ### No Warranty
 
-THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. THE DEVELOPERS AND REPIXEL CO., LTD. DO NOT GUARANTEE THAT THE SOFTWARE IS FREE OF BUGS, ERRORS, OR OTHER DEFECTS.
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. THE DEVELOPERS AND shiianamchi DO NOT GUARANTEE THAT THE SOFTWARE IS FREE OF BUGS, ERRORS, OR OTHER DEFECTS.
 
 ### Limitation of Liability
 
-IN NO EVENT SHALL THE DEVELOPERS OR REPIXEL CO., LTD. BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. THIS INCLUDES, BUT IS NOT LIMITED TO, LOSS OF DATA, DAMAGE TO MENDIX PROJECTS, BUSINESS INTERRUPTION, OR LOST PROFITS. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH YOU.
+IN NO EVENT SHALL THE DEVELOPERS OR shiianamchi BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. THIS INCLUDES, BUT IS NOT LIMITED TO, LOSS OF DATA, DAMAGE TO MENDIX PROJECTS, BUSINESS INTERRUPTION, OR LOST PROFITS. THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE SOFTWARE IS WITH YOU.
 
 ### User Responsibility & Data Backup
 
@@ -190,7 +190,7 @@ IT IS THE USER'S SOLE RESPONSIBILITY TO ENSURE THE ADEQUATE BACKUP OF ANY AND AL
 
 ### Unofficial Tool & Trademarks
 
-This is an unofficial tool developed independently by Repixel Co., Ltd. and is not affiliated with, endorsed, sponsored, or supported by Mendix Technology BV or its parent company Siemens AG.
+This is an unofficial tool developed independently by shiianamchi and is not affiliated with, endorsed, sponsored, or supported by Mendix Technology BV or its parent company Siemens AG.
 
 Mendix® is a registered trademark of Mendix Technology BV. Any use of the Mendix trademark is for nominative purposes only, to identify that this tool is designed to work with the Mendix platform, and does not imply any official association.
 
