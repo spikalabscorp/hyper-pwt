@@ -7,7 +7,7 @@
 
 ## Sub-Agent Usage
 
-- When spawning a sub-agent, use the GPT-5.5 High or GPT-5.5 Xhigh model depending on the task's difficulty.
+- When spawning sub-agents, use `gpt-5.6` with `high` reasoning effort for complex tasks and `max` for the most demanding tasks. Use `gpt-5.6-terra` for lightweight, read-heavy parallel work when speed and efficiency matter. If GPT-5.6 is unavailable in the current Codex workspace, use the strongest available model and reasoning effort.
 - For tasks that can be performed in parallel, use sub-agents to handle them.
 
 ## Commit Discipline
