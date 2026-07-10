@@ -27,31 +27,35 @@
         "release:hyper": "hyper-pwt release:web"
     },
     "devDependencies": {
-        "@mendix/pluggable-widgets-tools": "^11.8.1",
-        "hyper-pwt": "0.4.0-canary-ae3cc61",
-        "@types/big.js": "^6.2.2",
-        "@types/react-big-calendar": "^1.16.3"
+        "@mendix/pluggable-widgets-tools": "^11.12.0",
+        "@types/big.js": "^7.0.0",
+        "@types/react-big-calendar": "^1.16.3",
+        "hyper-pwt": "file:../.."
     },
     "dependencies": {
         "classnames": "^2.5.1",
-        "dayjs": "^1.11.20",
-        "react-big-calendar": "^1.19.4"
+        "dayjs": "^1.11.21",
+        "react-big-calendar": "^1.20.0"
     },
     "resolutions": {
-        "react": "^19.2.5",
-        "@types/react": "^19.2.14",
-        "react-dom": "^19.2.5",
+        "react": "^19.2.7",
+        "@types/react": "^19.2.17",
+        "react-dom": "^19.2.7",
         "@types/react-dom": "^19.2.3",
-        "react-native": "0.85.3"
+        "react-native": "0.86.0"
     },
     "overrides": {
-        "react": "^19.2.5",
-        "@types/react": "^19.2.14",
-        "react-dom": "^19.2.5",
+        "@babel/core": "7.29.7",
+        "@babel/plugin-transform-modules-systemjs": "7.29.7",
+        "react": "^19.2.7",
+        "@types/react": "^19.2.17",
+        "react-dom": "^19.2.7",
         "@types/react-dom": "^19.2.3",
-        "react-native": "0.85.3",
+        "react-native": "0.86.0",
         "@tootallnate/once": "3.0.1",
-        "fast-xml-parser": "5.7.3",
+        "brace-expansion": "5.0.7",
+        "fast-xml-parser": "5.9.3",
+        "js-yaml": "3.15.0",
         "lodash": "4.18.1",
         "minimatch": "3.1.5",
         "@typescript-eslint/typescript-estree": {
@@ -60,7 +64,10 @@
         "glob@12.0.0": {
             "minimatch": "10.2.5"
         },
-        "serialize-javascript": "7.0.5",
-        "yaml": "2.8.4"
+        "serialize-javascript": "7.0.7",
+        "shell-quote": "1.9.0",
+        "tmp": "0.2.7",
+        "ws": "7.5.11",
+        "yaml": "2.9.0"
     }
 }
