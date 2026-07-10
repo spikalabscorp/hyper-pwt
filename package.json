@@ -5,7 +5,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shiinamachi/hyper-pwt.git"
+    "url": "git+https://github.com/spikalabscorp/hyper-pwt.git"
   },
   "scripts": {
     "build": "rslib build",
@@ -44,43 +44,39 @@
     "mendix-pwt",
     "pluggable-widgets-tools"
   ],
-  "author": "shiinamachi",
+  "author": "spikalabs Co, Ltd.",
   "license": "MIT",
-  "packageManager": "pnpm@10.33.3",
+  "packageManager": "pnpm@11.11.0",
   "devDependencies": {
-    "@rslib/core": "0.21.3",
-    "@types/node": "25.6.0",
+    "@rslib/core": "0.23.2",
+    "@types/node": "26.1.1",
     "husky": "9.1.7",
-    "type-fest": "5.6.0",
-    "typescript": "6.0.3"
+    "type-fest": "5.8.0",
+    "typescript": "7.0.2"
   },
   "dependencies": {
-    "@babel/core": "7.26.0",
-    "@babel/plugin-transform-class-properties": "7.25.9",
-    "@babel/plugin-transform-private-methods": "7.25.9",
-    "@babel/plugin-transform-react-jsx": "7.25.9",
-    "@babel/preset-env": "7.26.0",
-    "@babel/preset-react": "7.25.9",
-    "@testing-library/dom": "8.20.0",
-    "@testing-library/jest-dom": "5.17.0",
-    "@testing-library/react": "13.4.0",
+    "@swc/core": "1.15.43",
+    "@swc/jest": "0.2.39",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/jest-dom": "6.9.1",
+    "@testing-library/react": "16.3.2",
     "@testing-library/user-event": "14.6.1",
-    "@types/testing-library__jest-dom": "5.14.9",
-    "@vitejs/plugin-react": "6.0.1",
-    "babel-jest": "29.7.0",
+    "@types/react": "19.2.17",
+    "@types/react-dom": "19.2.3",
+    "@typescript/typescript6": "6.0.2",
+    "@vitejs/plugin-react": "6.0.3",
     "chalk": "5.6.2",
-    "fast-xml-parser": "5.7.3",
+    "fast-xml-parser": "5.9.3",
     "identity-obj-proxy": "3.0.0",
-    "jest": "29.7.0",
-    "jest-environment-jsdom": "29.7.0",
-    "jest-jasmine2": "29.7.0",
-    "mendix": "10.24.104498",
-    "oxfmt": "0.48.0",
-    "oxlint": "1.63.0",
-    "rollup-plugin-typescript2": "0.37.0",
-    "ts-jest": "29.4.11",
-    "vite": "8.0.10",
-    "zip-a-folder": "6.1.1"
+    "jest": "30.4.2",
+    "jest-environment-jsdom": "30.4.1",
+    "mendix": "11.12.0",
+    "oxfmt": "0.58.0",
+    "oxlint": "1.73.0",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "vite": "8.1.4",
+    "zip-a-folder": "6.1.2"
   },
   "files": [
     "dist/**/*",
@@ -96,13 +92,6 @@
     "registry": "https://registry.npmjs.org"
   },
   "engines": {
-    "node": ">=24"
-  },
-  "pnpm": {
-    "overrides": {
-      "@rollup/pluginutils>picomatch": "2.3.2",
-      "rollup": "4.60.3",
-      "vite>yaml": "2.8.4"
-    }
+    "node": ">=20.19.0"
   }
 }

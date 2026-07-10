@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import typescript from "rollup-plugin-typescript2";
 import {
   build as viteBuild,
   createServer,
@@ -248,20 +247,6 @@ const startWebCommand = async () => {
         },
       },
       plugins: [
-        typescript({
-          tsconfig: path.join(PROJECT_DIRECTORY, "tsconfig.json"),
-          tsconfigOverride: {
-            compilerOptions: {
-              jsx: "preserve",
-              preserveConstEnums: false,
-              isolatedModules: false,
-              declaration: false,
-            },
-          },
-          include: ["src/**/*.ts", "src/**/*.tsx"],
-          exclude: ["node_modules/**", "src/**/*.d.ts"],
-          check: false,
-        }),
         mendixHotreloadReactPlugin(),
         ...(resultViteConfig.plugins as PluginOption[]),
         mendixPatchViteClientPlugin(),

@@ -5,7 +5,7 @@
             <widgetFile path="BenchmarkWidget.xml"/>
         </widgetFiles>
         <files>
-            <file path="shiinamachi/benchmarkwidget"/>
+            <file path="spikalabscorp/benchmarkwidget"/>
         </files>
     </clientModule>
 </package>

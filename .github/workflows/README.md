@@ -8,7 +8,7 @@ Before the workflow can publish, a package maintainer must configure the trusted
 publisher on npm:
 
 ```bash
-npm trust github hyper-pwt --repo shiinamachi/hyper-pwt --file release.yaml
+npm trust github hyper-pwt --repo spikalabscorp/hyper-pwt --file release.yaml
 ```
 
 After the first successful trusted publish, remove any old npm publish secret

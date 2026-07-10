@@ -1,7 +1,6 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import react from "@vitejs/plugin-react";
-import typescript from "rollup-plugin-typescript2";
 import type { PluginOption, UserConfig } from "vite";
 import type { PWTConfig } from "../..";
 import { PROJECT_DIRECTORY, WEB_OUTPUT_DIRECTORY } from "../../constants";
@@ -34,11 +33,13 @@ const resolveWidgetSourceEntry = async (
 const importTypeScript = new Function(
   "specifier",
   "return import(specifier)",
-) as (specifier: string) => Promise<typeof import("typescript")>;
-let typescriptModulePromise: Promise<typeof import("typescript")> | undefined;
+) as (specifier: string) => Promise<typeof import("@typescript/typescript6")>;
+let typescriptModulePromise:
+  | Promise<typeof import("@typescript/typescript6")>
+  | undefined;
 
 const loadTypeScript = () => {
-  typescriptModulePromise ??= importTypeScript("typescript");
+  typescriptModulePromise ??= importTypeScript("@typescript/typescript6");
 
   return typescriptModulePromise;
 };
@@ -237,22 +238,6 @@ export const getViteDefaultConfig = async (
         cssFileName: widgetName,
       },
       rolldownOptions: {
-        plugins: [
-          typescript({
-            tsconfig: path.join(PROJECT_DIRECTORY, "tsconfig.json"),
-            tsconfigOverride: {
-              compilerOptions: {
-                jsx: "preserve",
-                preserveConstEnums: false,
-                isolatedModules: false,
-                declaration: false,
-              },
-            },
-            include: ["src/**/*.ts", "src/**/*.tsx"],
-            exclude: ["node_modules/**", "src/**/*.d.ts"],
-            check: false,
-          }),
-        ],
         external: [
           ...commonExternalLibs,
           "react-dom/client",
