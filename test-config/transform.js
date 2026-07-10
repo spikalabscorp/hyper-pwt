@@ -1,14 +1,8 @@
-module.exports = require("babel-jest").createTransformer({
-  presets: [
-    [require.resolve("@babel/preset-env"), { modules: "auto" }],
-    require.resolve("@babel/preset-react"),
-  ],
-  plugins: [
-    require.resolve("@babel/plugin-transform-class-properties"),
-    require.resolve("@babel/plugin-transform-private-methods"),
-    [
-      require.resolve("@babel/plugin-transform-react-jsx"),
-      { runtime: "automatic" },
-    ],
-  ],
+module.exports = require("@swc/jest").createTransformer({
+  jsc: {
+    transform: { react: { runtime: "automatic" } },
+    parser: { syntax: "ecmascript", jsx: true, decorators: true },
+    target: "es2019",
+  },
+  module: { type: "commonjs" },
 });

@@ -9,7 +9,7 @@ type Probe = {
 };
 
 describe("tsx spec discovery", () => {
-  it("runs TSX specs through ts-jest", () => {
+  it("runs TSX specs through the SWC transform", () => {
     const probe: Probe = { label: "tsx" };
 
     expect(`${probe.label}-spec`).toBe("tsx-spec");

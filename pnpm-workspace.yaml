@@ -1,4 +1,13 @@
-ignoredBuiltDependencies:
-  - "@swc/core"
-  - core-js
-  - esbuild
+allowBuilds:
+  "@swc/core": false
+  core-js: false
+  esbuild: false
+  unrs-resolver: true
+minimumReleaseAgeExclude:
+  - vite@8.1.4
+overrides:
+  "@babel/core": 7.29.7
+  "@rollup/pluginutils>picomatch": 2.3.2
+  js-yaml: 3.15.0
+  rollup: 4.62.2
+  "vite>yaml": 2.9.0
