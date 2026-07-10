@@ -11,7 +11,7 @@
       "fileCount": 8,
       "files": [
         {
-          "path": "1.0.0\\shiinamachi.BenchmarkWidget.mpk",
+          "path": "1.0.0\\spikalabscorp.BenchmarkWidget.mpk",
           "size": 1319374
         },
         {
@@ -27,15 +27,15 @@
           "size": 821
         },
         {
-          "path": "tmp\\widgets\\shiinamachi\\benchmarkwidget\\BenchmarkWidget.css",
+          "path": "tmp\\widgets\\spikalabscorp\\benchmarkwidget\\BenchmarkWidget.css",
           "size": 29286
         },
         {
-          "path": "tmp\\widgets\\shiinamachi\\benchmarkwidget\\BenchmarkWidget.js",
+          "path": "tmp\\widgets\\spikalabscorp\\benchmarkwidget\\BenchmarkWidget.js",
           "size": 2217161
         },
         {
-          "path": "tmp\\widgets\\shiinamachi\\benchmarkwidget\\BenchmarkWidget.mjs",
+          "path": "tmp\\widgets\\spikalabscorp\\benchmarkwidget\\BenchmarkWidget.mjs",
           "size": 2183855
         },
         {
@@ -44,7 +44,7 @@
         }
       ],
       "mpkSize": 1319374,
-      "mpkFile": "shiinamachi.BenchmarkWidget.mpk"
+      "mpkFile": "spikalabscorp.BenchmarkWidget.mpk"
     }
   },
   "hyperBuild": {
@@ -59,7 +59,7 @@
       "fileCount": 13,
       "files": [
         {
-          "path": "1.0.0\\shiinamachi.BenchmarkWidget.mpk",
+          "path": "1.0.0\\spikalabscorp.BenchmarkWidget.mpk",
           "size": 570454
         },
         {
@@ -87,23 +87,23 @@
           "size": 70
         },
         {
-          "path": "tmp\\widgets\\shiinamachi\\benchmarkwidget\\BenchmarkWidget.css",
+          "path": "tmp\\widgets\\spikalabscorp\\benchmarkwidget\\BenchmarkWidget.css",
           "size": 18264
         },
         {
-          "path": "tmp\\widgets\\shiinamachi\\benchmarkwidget\\BenchmarkWidget.js",
+          "path": "tmp\\widgets\\spikalabscorp\\benchmarkwidget\\BenchmarkWidget.js",
           "size": 425059
         },
         {
-          "path": "tmp\\widgets\\shiinamachi\\benchmarkwidget\\BenchmarkWidget.js.map",
+          "path": "tmp\\widgets\\spikalabscorp\\benchmarkwidget\\BenchmarkWidget.js.map",
           "size": 876262
         },
         {
-          "path": "tmp\\widgets\\shiinamachi\\benchmarkwidget\\BenchmarkWidget.mjs",
+          "path": "tmp\\widgets\\spikalabscorp\\benchmarkwidget\\BenchmarkWidget.mjs",
           "size": 412821
         },
         {
-          "path": "tmp\\widgets\\shiinamachi\\benchmarkwidget\\BenchmarkWidget.mjs.map",
+          "path": "tmp\\widgets\\spikalabscorp\\benchmarkwidget\\BenchmarkWidget.mjs.map",
           "size": 874642
         },
         {
@@ -112,7 +112,7 @@
         }
       ],
       "mpkSize": 570454,
-      "mpkFile": "shiinamachi.BenchmarkWidget.mpk"
+      "mpkFile": "spikalabscorp.BenchmarkWidget.mpk"
     }
   },
   "comparison": {

@@ -3,7 +3,7 @@
     "widgetName": "BenchmarkWidget",
     "version": "1.0.0",
     "description": "Widget for benchmark",
-    "copyright": "Copyright 2025 shiinamachi. All rights reserved.",
+    "copyright": "Copyright 2025 spikalabs Co, Ltd. All rights reserved.",
     "author": "Chan Kang",
     "engines": {
         "node": ">=20"
@@ -14,7 +14,7 @@
         "mendixHost": "http://localhost:8080",
         "developmentPort": 3000
     },
-    "packagePath": "shiinamachi",
+    "packagePath": "spikalabscorp",
     "scripts": {
         "start": "pluggable-widgets-tools start:server",
         "dev": "pluggable-widgets-tools start:web",
